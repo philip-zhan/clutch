@@ -49,6 +49,8 @@ pub fn create_worktree(
         .unwrap_or("repo");
 
     let branch_name = format!("{}{}", branch_prefix, session_id);
+    // Use branch name as folder name, replacing `/` with `-` for filesystem safety
+    let folder_name = branch_name.replace('/', "-");
 
     let worktree_path = match location {
         "sibling" => {
@@ -56,7 +58,7 @@ pub fn create_worktree(
                 .parent()
                 .ok_or_else(|| "Cannot determine parent directory of repo".to_string())?;
             parent
-                .join(format!("{}-{}", repo_name, session_id))
+                .join(&folder_name)
                 .to_string_lossy()
                 .to_string()
         }
@@ -66,14 +68,14 @@ pub fn create_worktree(
             Path::new(&home)
                 .join(".claude-worktrees")
                 .join(repo_name)
-                .join(session_id)
+                .join(&folder_name)
                 .to_string_lossy()
                 .to_string()
         }
         custom => {
             Path::new(custom)
                 .join(repo_name)
-                .join(session_id)
+                .join(&folder_name)
                 .to_string_lossy()
                 .to_string()
         }
