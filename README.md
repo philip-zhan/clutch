@@ -1,17 +1,15 @@
 # Clutch
 
-Clutch is a desktop terminal that lets you run multiple Claude Code sessions side-by-side, with voice control coming soon.
+Clutch is a desktop terminal that lets you run multiple Claude Code sessions side-by-side.
 
 **Website:** https://clutch.computer
 
 ## Features
 
-- **Multi-session terminal** — Run multiple Claude Code instances in tabs with independent PTYs
+- **Auto worktree management** — Automatically creates and manages git worktrees for each session, keeping your work isolated
+- **Attention notifications** — Get notified when Claude needs your attention, with optional auto-switch to the relevant tab
 - **Session persistence** — Sessions restore across app restarts
 - **Keyboard-driven** — `Cmd+T` new session, `Cmd+W` close, `Cmd+1-9` switch, `Cmd+Shift+[/]` navigate
-- **Configurable** — Sidebar position, default command, default working directory
-- **Auto-updates** — Built-in update system with download and relaunch
-- **Tray icon** — Runs in background, close hides to tray
 
 ## Getting Started
 
