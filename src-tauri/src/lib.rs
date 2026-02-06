@@ -8,7 +8,7 @@ use commands::{
     cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
     session_write, setup_session_worktree, PtyState,
 };
-use notifications::SessionsDir;
+use notifications::{poll_session_activity, SessionsDir};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
@@ -35,14 +35,11 @@ pub fn run() {
             session_resize,
             setup_session_worktree,
             cleanup_session_worktree,
+            poll_session_activity,
         ])
         .setup(|app| {
             // Auto-configure Claude Code hooks (UserPromptSubmit + Stop + Notification)
             hooks_config::ensure_hooks();
-
-            // Start session activity poller
-            let sessions_dir: Arc<SessionsDir> = app.state::<Arc<SessionsDir>>().inner().clone();
-            notifications::start_session_activity_poller(app.handle().clone(), sessions_dir);
 
             // Set up tray icon click handler
             if let Some(tray) = app.tray_by_id("main") {

@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId } from "./lib/sessions";
@@ -165,12 +164,6 @@ function App() {
     [updateSession]
   );
 
-  // Track activeSessionId in a ref for event listener closure
-  const activeSessionIdRef = useRef(activeSessionId);
-  useEffect(() => {
-    activeSessionIdRef.current = activeSessionId;
-  }, [activeSessionId]);
-
   const handleSelectSession = useCallback(
     (sessionId: string) => {
       setActiveSession(sessionId);
@@ -178,28 +171,37 @@ function App() {
     [setActiveSession]
   );
 
-  // Listen for session activity changes from Rust backend
+  // Poll session activity from Rust backend
+  const lastSeenRef = useRef<Record<string, string>>({});
   useEffect(() => {
-    let unlisten: (() => void) | null = null;
+    const sessionIds = sessions.filter((s) => s.status === "running").map((s) => s.id);
+    if (sessionIds.length === 0) return;
 
-    listen<{ session_id: string; activity: string }>("session-activity-changed", (event) => {
-      const { session_id: sessionId, activity } = event.payload;
+    const poll = async () => {
+      try {
+        const statuses = await invoke<Record<string, string>>("poll_session_activity", { sessionIds });
+        const lastSeen = lastSeenRef.current;
 
-      if (activity === "running") {
-        setActivityState(sessionId, "running");
-      } else if (activity === "finished") {
-        setActivityState(sessionId, "finished");
-      } else if (activity === "needs_input") {
-        setActivityState(sessionId, "needs_input");
+        for (const [sessionId, content] of Object.entries(statuses)) {
+          if (content === lastSeen[sessionId]) continue;
+          lastSeen[sessionId] = content;
+
+          if (content === "UserPromptSubmit") {
+            setActivityState(sessionId, "running");
+          } else if (content === "Stop") {
+            setActivityState(sessionId, "finished");
+          } else if (content === "Notification") {
+            setActivityState(sessionId, "needs_input");
+          }
+        }
+      } catch {
+        // Ignore poll errors
       }
-    }).then((fn) => {
-      unlisten = fn;
-    });
-
-    return () => {
-      unlisten?.();
     };
-  }, [setActivityState]);
+
+    const interval = setInterval(poll, 250);
+    return () => clearInterval(interval);
+  }, [sessions, setActivityState]);
 
   // Keyboard shortcuts
   useEffect(() => {
