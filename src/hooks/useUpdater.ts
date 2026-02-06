@@ -127,28 +127,29 @@ export function useUpdater(): UseUpdaterResult {
 		updateRef.current = null;
 	}, []);
 
-	useEffect(() => {
-		const initialTimer = setTimeout(() => {
-			if (!hasCheckedRef.current) {
-				hasCheckedRef.current = true;
-				checkForUpdates();
-			}
-		}, 3000);
-
-		const intervalTimer = setInterval(
-			() => {
-				if (state.status === "idle") {
-					checkForUpdates();
-				}
-			},
-			10 * 60 * 1000,
-		);
-
-		return () => {
-			clearTimeout(initialTimer);
-			clearInterval(intervalTimer);
-		};
-	}, [checkForUpdates, state.status]);
+	// Auto-check on startup disabled for now
+	// useEffect(() => {
+	// 	const initialTimer = setTimeout(() => {
+	// 		if (!hasCheckedRef.current) {
+	// 			hasCheckedRef.current = true;
+	// 			checkForUpdates();
+	// 		}
+	// 	}, 3000);
+	//
+	// 	const intervalTimer = setInterval(
+	// 		() => {
+	// 			if (state.status === "idle") {
+	// 				checkForUpdates();
+	// 			}
+	// 		},
+	// 		10 * 60 * 1000,
+	// 	);
+	//
+	// 	return () => {
+	// 		clearTimeout(initialTimer);
+	// 		clearInterval(intervalTimer);
+	// 	};
+	// }, [checkForUpdates, state.status]);
 
 	return {
 		...state,
