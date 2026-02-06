@@ -196,9 +196,7 @@ function App() {
       } else if (activity === "finished") {
         setActivityState(sessionId, "finished");
       } else if (activity === "needs_input") {
-        if (sessionId !== activeSessionIdRef.current) {
-          setActivityState(sessionId, "needs_input");
-        }
+        setActivityState(sessionId, "needs_input");
       }
     }).then((fn) => {
       unlisten = fn;
