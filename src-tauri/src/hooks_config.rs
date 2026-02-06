@@ -17,9 +17,12 @@ const LEGACY_HOOK_COMMAND: &str =
     r#"test -n "$CLUTCH_NOTIFY_DIR" && test -n "$CLUTCH_SESSION_ID" && touch "$CLUTCH_NOTIFY_DIR/$CLUTCH_SESSION_ID""#;
 
 pub fn ensure_hooks() {
+    eprintln!("[clutch:hooks] ensuring hooks are configured");
     let Some(settings_path) = claude_settings_path() else {
+        eprintln!("[clutch:hooks] could not determine settings path");
         return;
     };
+    eprintln!("[clutch:hooks] settings path: {:?}", settings_path);
 
     let mut settings: Value = if settings_path.exists() {
         match std::fs::read_to_string(&settings_path) {

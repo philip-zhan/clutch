@@ -39,6 +39,7 @@ impl Drop for NotifyDir {
 }
 
 pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDir>) {
+    eprintln!("[clutch:poller] watching dir: {:?}", notify_dir.path);
     thread::spawn(move || loop {
         thread::sleep(Duration::from_millis(500));
 
@@ -50,10 +51,12 @@ pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDi
         for entry in entries.flatten() {
             let file_name = entry.file_name();
             let name = file_name.to_string_lossy().to_string();
+            eprintln!("[clutch:poller] found file: {}", name);
 
             let _ = std::fs::remove_file(entry.path());
 
             if let Some(session_id) = name.strip_prefix("stop_") {
+                eprintln!("[clutch:poller] emitting session-stopped for {}", session_id);
                 let _ = app_handle.emit(
                     "session-stopped",
                     SessionStoppedPayload {
@@ -61,6 +64,7 @@ pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDi
                     },
                 );
             } else if let Some(session_id) = name.strip_prefix("notify_") {
+                eprintln!("[clutch:poller] emitting session-needs-attention for {}", session_id);
                 let _ = app_handle.emit(
                     "session-needs-attention",
                     NeedsAttentionPayload {
@@ -69,6 +73,7 @@ pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDi
                 );
             } else {
                 // Legacy: bare session_id without prefix → treat as notification
+                eprintln!("[clutch:poller] emitting session-needs-attention (legacy) for {}", name);
                 let _ = app_handle.emit(
                     "session-needs-attention",
                     NeedsAttentionPayload {
