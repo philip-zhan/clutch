@@ -44,6 +44,7 @@ export function useSessionStore() {
       const sessions = ((await store.get<Session[]>("sessions")) ?? []).map((s) => ({
         ...s,
         status: "exited" as const,
+        needsAttention: false,
       }));
       const activeSessionId = await store.get<string>("activeSessionId");
       const sidebarPosition =
@@ -90,7 +91,7 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      await store.set("sessions", state.sessions);
+      await store.set("sessions", state.sessions.map(({ needsAttention: _, ...s }) => s));
       await store.set("activeSessionId", state.activeSessionId);
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
@@ -167,6 +168,15 @@ export function useSessionStore() {
     setState((prev) => ({ ...prev, branchPrefix: prefix }));
   }, []);
 
+  const setNeedsAttention = useCallback((sessionId: string, needsAttention: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      sessions: prev.sessions.map((s) =>
+        s.id === sessionId ? { ...s, needsAttention } : s
+      ),
+    }));
+  }, []);
+
   return {
     ...state,
     isLoaded: isLoadedRef.current,
@@ -181,5 +191,6 @@ export function useSessionStore() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
+    setNeedsAttention,
   };
 }

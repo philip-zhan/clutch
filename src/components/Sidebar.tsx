@@ -115,9 +115,20 @@ function VerticalSidebar({
             <div
               className={cn(
                 "rounded-full flex-shrink-0",
-                session.status === "running" ? "bg-success" : "bg-foreground-subtle"
+                session.needsAttention
+                  ? "bg-warning"
+                  : session.status === "running"
+                    ? "bg-success"
+                    : "bg-foreground-subtle"
               )}
-              style={{ width: 7, height: 7, marginRight: 10 }}
+              style={{
+                width: 7,
+                height: 7,
+                marginRight: 10,
+                ...(session.needsAttention
+                  ? { animation: "pulse-attention 1.5s ease-in-out infinite" }
+                  : {}),
+              }}
             />
 
             <div className="flex-1 min-w-0">
@@ -221,9 +232,19 @@ function HorizontalSidebar({
           <div
             className={cn(
               "rounded-full flex-shrink-0",
-              session.status === "running" ? "bg-success" : "bg-foreground-subtle"
+              session.needsAttention
+                ? "bg-warning"
+                : session.status === "running"
+                  ? "bg-success"
+                  : "bg-foreground-subtle"
             )}
-            style={{ width: 6, height: 6 }}
+            style={{
+              width: 6,
+              height: 6,
+              ...(session.needsAttention
+                ? { animation: "pulse-attention 1.5s ease-in-out infinite" }
+                : {}),
+            }}
           />
           <span className="text-xs truncate" style={{ maxWidth: 120 }}>
             {sessionDisplayName(session)}

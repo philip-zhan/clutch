@@ -1,7 +1,8 @@
 use crate::git;
+use crate::notifications::NotifyDir;
 use crate::pty::PtyManager;
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, State};
 
 pub struct PtyState(pub Mutex<HashMap<String, PtyManager>>);
@@ -9,6 +10,7 @@ pub struct PtyState(pub Mutex<HashMap<String, PtyManager>>);
 #[tauri::command]
 pub fn create_session(
     state: State<'_, PtyState>,
+    notify_dir: State<'_, Arc<NotifyDir>>,
     app_handle: AppHandle,
     session_id: String,
     cols: u16,
@@ -26,8 +28,13 @@ pub fn create_session(
         return Ok(());
     }
 
+    let env_vars = vec![
+        ("CLUTCH_NOTIFY_DIR".to_string(), notify_dir.path_str()),
+        ("CLUTCH_SESSION_ID".to_string(), session_id.clone()),
+    ];
+
     let pty = PtyManager::new(cols, rows)?;
-    pty.spawn_command(working_dir, command)?;
+    pty.spawn_command(working_dir, command, env_vars)?;
     pty.start_reader(app_handle, session_id.clone())?;
 
     map.insert(session_id, pty);
@@ -49,6 +56,7 @@ pub fn destroy_session(state: State<'_, PtyState>, session_id: String) -> Result
 #[tauri::command]
 pub fn restart_session(
     state: State<'_, PtyState>,
+    notify_dir: State<'_, Arc<NotifyDir>>,
     app_handle: AppHandle,
     session_id: String,
     cols: u16,
@@ -66,7 +74,7 @@ pub fn restart_session(
     }
 
     // Create new
-    create_session(state, app_handle, session_id, cols, rows, working_dir, command)
+    create_session(state, notify_dir, app_handle, session_id, cols, rows, working_dir, command)
 }
 
 #[tauri::command]

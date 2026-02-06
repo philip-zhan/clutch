@@ -14,6 +14,7 @@ export interface Session {
   worktreePath?: string;
   gitRepoPath?: string;
   originalWorkingDir?: string;
+  needsAttention?: boolean;
 }
 
 export function generateSessionId(): string {

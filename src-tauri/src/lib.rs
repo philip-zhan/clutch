@@ -1,13 +1,16 @@
 mod commands;
 mod git;
+mod hooks_config;
+mod notifications;
 mod pty;
 
 use commands::{
     cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
     session_write, setup_session_worktree, PtyState,
 };
+use notifications::NotifyDir;
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
 use tauri::{ActivationPolicy, Manager, RunEvent, WindowEvent};
 
@@ -21,6 +24,9 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PtyState(Mutex::new(HashMap::new())))
+        .manage(Arc::new(
+            NotifyDir::new().expect("Failed to create notification directory"),
+        ))
         .invoke_handler(tauri::generate_handler![
             create_session,
             destroy_session,
@@ -31,6 +37,13 @@ pub fn run() {
             cleanup_session_worktree,
         ])
         .setup(|app| {
+            // Auto-configure Claude Code notification hook
+            hooks_config::ensure_notification_hook();
+
+            // Start notification directory poller
+            let notify_dir: Arc<NotifyDir> = app.state::<Arc<NotifyDir>>().inner().clone();
+            notifications::start_notification_poller(app.handle().clone(), notify_dir);
+
             // Set up tray icon click handler
             if let Some(tray) = app.tray_by_id("main") {
                 tray.on_tray_icon_event(|tray, event| {

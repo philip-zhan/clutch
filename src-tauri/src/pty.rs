@@ -48,6 +48,7 @@ impl PtyManager {
         &self,
         working_dir: Option<String>,
         command: Option<String>,
+        env_vars: Vec<(String, String)>,
     ) -> Result<(), String> {
         let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".to_string());
 
@@ -67,6 +68,9 @@ impl PtyManager {
                 shell_cmd.env("TERM", "xterm-256color");
                 shell_cmd.env("COLORTERM", "truecolor");
                 shell_cmd.env("LANG", "en_US.UTF-8");
+                for (key, value) in &env_vars {
+                    shell_cmd.env(key, value);
+                }
 
                 self.pair
                     .slave
@@ -85,6 +89,9 @@ impl PtyManager {
                 cmd.env("TERM", "xterm-256color");
                 cmd.env("COLORTERM", "truecolor");
                 cmd.env("LANG", "en_US.UTF-8");
+                for (key, value) in &env_vars {
+                    cmd.env(key, value);
+                }
 
                 self.pair
                     .slave

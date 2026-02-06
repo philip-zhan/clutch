@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId } from "./lib/sessions";
@@ -34,6 +35,7 @@ function App() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
+    setNeedsAttention,
   } = useSessionStore();
 
   const updater = useUpdater();
@@ -162,6 +164,39 @@ function App() {
     [updateSession]
   );
 
+  // Track activeSessionId in a ref for event listener closure
+  const activeSessionIdRef = useRef(activeSessionId);
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
+
+  // Wrap setActiveSession to clear attention on switch
+  const handleSelectSession = useCallback(
+    (sessionId: string) => {
+      setActiveSession(sessionId);
+      setNeedsAttention(sessionId, false);
+    },
+    [setActiveSession, setNeedsAttention]
+  );
+
+  // Listen for session attention notifications from Rust backend
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+
+    listen<{ session_id: string }>("session-needs-attention", (event) => {
+      const sessionId = event.payload.session_id;
+      if (sessionId !== activeSessionIdRef.current) {
+        setNeedsAttention(sessionId, true);
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, [setNeedsAttention]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -196,7 +231,7 @@ function App() {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
         if (index < sessions.length) {
-          setActiveSession(sessions[index].id);
+          handleSelectSession(sessions[index].id);
         }
         return;
       }
@@ -207,7 +242,7 @@ function App() {
         if (sessions.length > 1 && activeSessionId) {
           const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
           const prevIndex = (currentIndex - 1 + sessions.length) % sessions.length;
-          setActiveSession(sessions[prevIndex].id);
+          handleSelectSession(sessions[prevIndex].id);
         }
         return;
       }
@@ -218,7 +253,7 @@ function App() {
         if (sessions.length > 1 && activeSessionId) {
           const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
           const nextIndex = (currentIndex + 1) % sessions.length;
-          setActiveSession(sessions[nextIndex].id);
+          handleSelectSession(sessions[nextIndex].id);
         }
         return;
       }
@@ -226,7 +261,7 @@ function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [sessions, activeSessionId, setActiveSession, handleCloseSession, handleNewSession]);
+  }, [sessions, activeSessionId, handleSelectSession, handleCloseSession, handleNewSession]);
 
   // Determine flex direction based on sidebar position
   const flexDirection = {
@@ -245,7 +280,7 @@ function App() {
           sessions={sessions}
           activeSessionId={activeSessionId}
           position={sidebarPosition}
-          onSelect={setActiveSession}
+          onSelect={handleSelectSession}
           onNew={handleNewSession}
           onClose={handleCloseSession}
           onRestart={handleRestartSession}
