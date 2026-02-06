@@ -38,23 +38,6 @@ bun run tauri:build
 
 Produces an unsigned `.app` bundle in `src-tauri/target/release/bundle/`.
 
-## Architecture
-
-```
-React + TypeScript (Vite)          Rust (Tauri v2)
-┌──────────────────────┐           ┌──────────────────────┐
-│  App                 │           │  commands.rs          │
-│  ├── useSessionStore │  invoke   │  ├── create_session   │
-│  ├── usePty ─────────┼──────────→│  ├── destroy_session  │
-│  └── Terminal (xterm)│           │  ├── session_write     │
-│       ▲              │  listen   │  └── session_resize    │
-│       └──────────────┼──────────←│                        │
-│      pty-data events │           │  pty.rs (portable-pty) │
-└──────────────────────┘           └──────────────────────┘
-```
-
-The frontend manages session state and renders xterm.js terminals. Each session maps to a Rust-side PTY managed by `portable-pty`. Communication happens over Tauri's IPC: `invoke` for commands, `listen` for streamed PTY output.
-
 ## Tech Stack
 
 | Layer | Technology |
