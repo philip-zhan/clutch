@@ -116,6 +116,9 @@ export function Settings({
                     onDefaultCommandChange(localCommand.trim());
                   }
                 }}
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
             </div>
 
@@ -236,6 +239,9 @@ export function Settings({
                             onWorktreeCustomPathChange(localCustomPath.trim());
                           }
                         }}
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
                       />
                     )}
                   </div>
@@ -256,6 +262,9 @@ export function Settings({
                           onBranchPrefixChange(localBranchPrefix.trim() || "claude/");
                         }
                       }}
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
                     />
                     <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
                       Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix || "claude/"}ses_abc123</code>
