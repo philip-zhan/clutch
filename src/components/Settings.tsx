@@ -80,7 +80,7 @@ export function Settings({
         onDefaultCommandChange(localCommand.trim());
       }
       if (localBranchPrefix !== branchPrefix) {
-        onBranchPrefixChange(localBranchPrefix.trim() || "claude/");
+        onBranchPrefixChange(localBranchPrefix.trim());
       }
       if (localCustomPath !== worktreeCustomPath) {
         onWorktreeCustomPathChange(localCustomPath.trim());
@@ -113,7 +113,7 @@ export function Settings({
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
                 style={{ padding: "8px 12px", height: 36 }}
-                placeholder="e.g. claude, aider, or leave empty"
+                placeholder="e.g. claude, codex, or leave empty"
                 value={localCommand}
                 onChange={(e) => setLocalCommand(e.target.value)}
                 onBlur={() => {
@@ -295,12 +295,12 @@ export function Settings({
                     <input
                       className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
                       style={{ padding: "8px 12px", height: 36 }}
-                      placeholder="claude/"
+                      placeholder="e.g. claude/"
                       value={localBranchPrefix}
                       onChange={(e) => setLocalBranchPrefix(e.target.value)}
                       onBlur={() => {
                         if (localBranchPrefix.trim() !== branchPrefix) {
-                          onBranchPrefixChange(localBranchPrefix.trim() || "claude/");
+                          onBranchPrefixChange(localBranchPrefix.trim());
                         }
                       }}
                       autoCorrect="off"
@@ -308,7 +308,7 @@ export function Settings({
                       spellCheck={false}
                     />
                     <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                      Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix || "claude/"}ses_abc123</code>
+                      Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix}ses_abc123</code>
                     </p>
                   </div>
                 </div>
