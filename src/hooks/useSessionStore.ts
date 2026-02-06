@@ -25,7 +25,7 @@ const DEFAULT_STATE: SessionStoreState = {
   worktreeEnabled: true,
   worktreeLocation: "home",
   worktreeCustomPath: "",
-  branchPrefix: "claude/",
+  branchPrefix: "",
 };
 
 export function useSessionStore() {
@@ -60,7 +60,7 @@ export function useSessionStore() {
       const worktreeCustomPath =
         (await store.get<string>("worktreeCustomPath")) ?? "";
       const branchPrefix =
-        (await store.get<string>("branchPrefix")) ?? "claude/";
+        (await store.get<string>("branchPrefix")) ?? "";
 
       if (mounted) {
         setState({
