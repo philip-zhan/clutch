@@ -1,7 +1,11 @@
 mod commands;
+mod git;
 mod pty;
 
-use commands::{create_session, destroy_session, restart_session, session_resize, session_write, PtyState};
+use commands::{
+    cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
+    session_write, setup_session_worktree, PtyState,
+};
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::tray::TrayIconEvent;
@@ -23,6 +27,8 @@ pub fn run() {
             restart_session,
             session_write,
             session_resize,
+            setup_session_worktree,
+            cleanup_session_worktree,
         ])
         .setup(|app| {
             // Set up tray icon click handler

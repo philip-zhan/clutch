@@ -1,3 +1,4 @@
+use crate::git;
 use crate::pty::PtyManager;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -86,6 +87,24 @@ pub fn session_write(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn setup_session_worktree(
+    session_id: String,
+    working_dir: String,
+    location: String,
+    branch_prefix: String,
+) -> git::WorktreeSetupResult {
+    git::setup_worktree_for_session(&working_dir, &session_id, &location, &branch_prefix)
+}
+
+#[tauri::command]
+pub fn cleanup_session_worktree(
+    worktree_path: String,
+    git_repo_path: String,
+) -> git::WorktreeRemoveResult {
+    git::remove_worktree(&git_repo_path, &worktree_path)
 }
 
 #[tauri::command]

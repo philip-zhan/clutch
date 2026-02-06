@@ -21,7 +21,7 @@
 New Rust module with these functions:
 
 - **`find_git_root(dir) -> Option<String>`** — runs `git rev-parse --show-toplevel` to check if a dir is in a git repo
-- **`create_worktree(repo_root, session_id) -> Result<String, String>`** — runs `git worktree add -b session/{session_id} {repo}-{session_id}` as a sibling directory. Returns the worktree path.
+- **`create_worktree(repo_root, session_id) -> Result<String, String>`** — runs `git worktree add -b claude/{session_id} {repo}-{session_id}` as a sibling directory. Returns the worktree path.
 - **`setup_worktree_for_session(working_dir, session_id) -> WorktreeSetupResult`** — orchestrates the above. Never errors; always returns an `effective_dir` to use (worktree path on success, original dir on fallback).
 - **`remove_worktree(repo_root, worktree_path) -> WorktreeRemoveResult`** — runs `git worktree remove`, then best-effort `git branch -d` to clean up the branch. Returns `{ success, error }`.
 
@@ -82,7 +82,7 @@ Use `session.originalWorkingDir ?? session.workingDir` as the directory for the 
 
 1. `cargo check --manifest-path src-tauri/Cargo.toml` — Rust compiles
 2. `npx tsc --noEmit` — TypeScript compiles
-3. Create session in a git repo dir → verify sibling worktree directory exists, terminal `pwd` shows worktree, `git branch` shows `session/ses_*`
+3. Create session in a git repo dir → verify sibling worktree directory exists, terminal `pwd` shows worktree, `git branch` shows `claude/ses_*`
 4. Create session in a non-git dir → verify normal behavior, no worktree created
 5. Close a worktree session → verify worktree dir removed, branch deleted
 6. Close a worktree session with uncommitted changes → verify warning dialog, worktree kept

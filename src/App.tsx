@@ -19,6 +19,10 @@ function App() {
     sidebarPosition,
     defaultCommand,
     defaultWorkingDir,
+    worktreeEnabled,
+    worktreeLocation,
+    worktreeCustomPath,
+    branchPrefix,
     addSession,
     removeSession,
     updateSession,
@@ -26,6 +30,10 @@ function App() {
     setSidebarPosition,
     setDefaultCommand,
     setDefaultWorkingDir,
+    setWorktreeEnabled,
+    setWorktreeLocation,
+    setWorktreeCustomPath,
+    setBranchPrefix,
   } = useSessionStore();
 
   const updater = useUpdater();
@@ -36,18 +44,51 @@ function App() {
   const mountedSessionsRef = useRef<Set<string>>(new Set());
 
   const handleCreateSession = useCallback(
-    (name: string, workingDir: string, command: string) => {
+    async (name: string, workingDir: string, command: string) => {
+      const sessionId = generateSessionId();
+      let effectiveDir = workingDir;
+      let worktreePath: string | undefined;
+      let gitRepoPath: string | undefined;
+      let originalWorkingDir: string | undefined;
+
+      if (worktreeEnabled && workingDir) {
+        try {
+          const location = worktreeLocation === "custom" ? worktreeCustomPath : worktreeLocation;
+          const result = await invoke<{
+            effective_dir: string;
+            worktree_path: string | null;
+            git_repo_path: string | null;
+          }>("setup_session_worktree", {
+            sessionId,
+            workingDir,
+            location,
+            branchPrefix,
+          });
+          effectiveDir = result.effective_dir;
+          worktreePath = result.worktree_path ?? undefined;
+          gitRepoPath = result.git_repo_path ?? undefined;
+          if (worktreePath) {
+            originalWorkingDir = workingDir;
+          }
+        } catch {
+          // Fallback to original dir
+        }
+      }
+
       const session: Session = {
-        id: generateSessionId(),
+        id: sessionId,
         name,
-        workingDir,
+        workingDir: effectiveDir,
         command: command || undefined,
         status: "running",
         createdAt: Date.now(),
+        worktreePath,
+        gitRepoPath,
+        originalWorkingDir,
       };
       addSession(session);
     },
-    [addSession]
+    [addSession, worktreeEnabled, worktreeLocation, worktreeCustomPath, branchPrefix]
   );
 
   const handleNewSession = useCallback(() => {
@@ -56,15 +97,40 @@ function App() {
 
   const handleCloseSession = useCallback(
     async (sessionId: string) => {
+      const session = sessions.find((s) => s.id === sessionId);
+
       try {
         await invoke("destroy_session", { sessionId });
       } catch {
         // PTY may already be gone
       }
+
+      // Clean up worktree if one was created
+      if (session?.worktreePath && session?.gitRepoPath) {
+        try {
+          const result = await invoke<{ success: boolean; error: string | null }>(
+            "cleanup_session_worktree",
+            {
+              worktreePath: session.worktreePath,
+              gitRepoPath: session.gitRepoPath,
+            }
+          );
+          if (!result.success && result.error) {
+            const { message } = await import("@tauri-apps/plugin-dialog");
+            await message(
+              `Could not remove worktree:\n${result.error}\n\nThe worktree has been kept at:\n${session.worktreePath}`,
+              { title: "Worktree Cleanup", kind: "warning" }
+            );
+          }
+        } catch {
+          // Best effort
+        }
+      }
+
       mountedSessionsRef.current.delete(sessionId);
       removeSession(sessionId);
     },
-    [removeSession]
+    [sessions, removeSession]
   );
 
   const handleRestartSession = useCallback(
@@ -72,20 +138,14 @@ function App() {
       const session = sessions.find((s) => s.id === sessionId);
       if (!session) return;
 
-      // Remove old session and create a new one with same config
+      const restartDir = session.originalWorkingDir ?? session.workingDir;
+
+      // Remove old session (cleans up worktree) and create a new one
       handleCloseSession(sessionId).then(() => {
-        const newSession: Session = {
-          id: generateSessionId(),
-          name: session.name,
-          workingDir: session.workingDir,
-          command: session.command,
-          status: "running",
-          createdAt: Date.now(),
-        };
-        addSession(newSession);
+        handleCreateSession(session.name, restartDir, session.command ?? "");
       });
     },
-    [sessions, handleCloseSession, addSession]
+    [sessions, handleCloseSession, handleCreateSession]
   );
 
   const handleRenameSession = useCallback(
@@ -262,6 +322,14 @@ function App() {
         onDefaultCommandChange={setDefaultCommand}
         defaultWorkingDir={defaultWorkingDir}
         onDefaultWorkingDirChange={setDefaultWorkingDir}
+        worktreeEnabled={worktreeEnabled}
+        onWorktreeEnabledChange={setWorktreeEnabled}
+        worktreeLocation={worktreeLocation}
+        onWorktreeLocationChange={setWorktreeLocation}
+        worktreeCustomPath={worktreeCustomPath}
+        onWorktreeCustomPathChange={setWorktreeCustomPath}
+        branchPrefix={branchPrefix}
+        onBranchPrefixChange={setBranchPrefix}
         updater={updater}
       />
 
