@@ -38,15 +38,6 @@ bun run tauri:build
 
 Produces an unsigned `.app` bundle in `src-tauri/target/release/bundle/`.
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, xterm.js |
-| Backend | Rust, Tauri v2, portable-pty |
-| Storage | `@tauri-apps/plugin-store` (local JSON) |
-| Package manager | Bun |
-
 ## License
 
 MIT
