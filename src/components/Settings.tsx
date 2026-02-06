@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Volume2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Button } from "./ui/button";
 import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 import type { SidebarPosition, WorktreeLocation } from "@/lib/sessions";
 import type { UseUpdaterResult } from "@/hooks/useUpdater";
+import { SOUND_OPTIONS, playNotificationSound, type NotificationSound } from "@/lib/sounds";
 
 interface SettingsProps {
   open: boolean;
@@ -30,6 +31,8 @@ interface SettingsProps {
   onWorktreeCustomPathChange: (path: string) => void;
   branchPrefix: string;
   onBranchPrefixChange: (prefix: string) => void;
+  notificationSound: NotificationSound;
+  onNotificationSoundChange: (sound: NotificationSound) => void;
   updater: UseUpdaterResult;
 }
 
@@ -50,6 +53,8 @@ export function Settings({
   onWorktreeCustomPathChange,
   branchPrefix,
   onBranchPrefixChange,
+  notificationSound,
+  onNotificationSoundChange,
   updater,
 }: SettingsProps) {
   const [localCommand, setLocalCommand] = useState(defaultCommand);
@@ -148,6 +153,42 @@ export function Settings({
                     {pos}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Notification Sound */}
+            <div>
+              <div style={{ marginBottom: 12 }}>
+                <h3 className="text-sm font-medium text-foreground">
+                  Notification Sound
+                </h3>
+                <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+                  Sound to play when a session needs your input.
+                </p>
+              </div>
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <select
+                  className="rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
+                  style={{ padding: "6px 12px", height: 36 }}
+                  value={notificationSound}
+                  onChange={(e) => onNotificationSoundChange(e.target.value as NotificationSound)}
+                >
+                  {SOUND_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {notificationSound !== "none" && (
+                  <button
+                    className="flex items-center justify-center rounded-lg border border-border text-foreground-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
+                    style={{ width: 36, height: 36 }}
+                    onClick={() => playNotificationSound(notificationSound)}
+                    title="Preview sound"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 

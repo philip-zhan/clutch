@@ -9,6 +9,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
 import { Settings } from "./components/Settings";
 import { UpdateDialog } from "./components/UpdateDialog";
+import { playNotificationSound } from "./lib/sounds";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -34,6 +35,8 @@ function App() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
+    notificationSound,
+    setNotificationSound,
     setActivityState,
   } = useSessionStore();
 
@@ -43,6 +46,10 @@ function App() {
 
   // Track which terminal components are mounted to manage destroy
   const mountedSessionsRef = useRef<Set<string>>(new Set());
+
+  // Ref for notification sound to avoid resetting poll interval on preference change
+  const notificationSoundRef = useRef(notificationSound);
+  notificationSoundRef.current = notificationSound;
 
   const handleCreateSession = useCallback(
     async (name: string, workingDir: string, command: string) => {
@@ -192,6 +199,7 @@ function App() {
             setActivityState(sessionId, "finished");
           } else if (content === "Notification") {
             setActivityState(sessionId, "needs_input");
+            playNotificationSound(notificationSoundRef.current);
           }
         }
       } catch {
@@ -371,6 +379,8 @@ function App() {
         onWorktreeCustomPathChange={setWorktreeCustomPath}
         branchPrefix={branchPrefix}
         onBranchPrefixChange={setBranchPrefix}
+        notificationSound={notificationSound}
+        onNotificationSoundChange={setNotificationSound}
         updater={updater}
       />
 

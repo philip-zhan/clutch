@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
+import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";
 
@@ -14,6 +15,7 @@ interface SessionStoreState {
   worktreeLocation: WorktreeLocation;
   worktreeCustomPath: string;
   branchPrefix: string;
+  notificationSound: NotificationSound;
 }
 
 const DEFAULT_STATE: SessionStoreState = {
@@ -26,6 +28,7 @@ const DEFAULT_STATE: SessionStoreState = {
   worktreeLocation: "home",
   worktreeCustomPath: "",
   branchPrefix: "",
+  notificationSound: "chime",
 };
 
 export function useSessionStore() {
@@ -61,6 +64,8 @@ export function useSessionStore() {
         (await store.get<string>("worktreeCustomPath")) ?? "";
       const branchPrefix =
         (await store.get<string>("branchPrefix")) ?? "";
+      const notificationSound =
+        (await store.get<NotificationSound>("notificationSound")) ?? "chime";
 
       if (mounted) {
         setState({
@@ -73,6 +78,7 @@ export function useSessionStore() {
           worktreeLocation,
           worktreeCustomPath,
           branchPrefix,
+          notificationSound,
         });
         isLoadedRef.current = true;
       }
@@ -100,6 +106,7 @@ export function useSessionStore() {
       await store.set("worktreeLocation", state.worktreeLocation);
       await store.set("worktreeCustomPath", state.worktreeCustomPath);
       await store.set("branchPrefix", state.branchPrefix);
+      await store.set("notificationSound", state.notificationSound);
       await store.save();
     };
     persist();
@@ -168,6 +175,10 @@ export function useSessionStore() {
     setState((prev) => ({ ...prev, branchPrefix: prefix }));
   }, []);
 
+  const setNotificationSound = useCallback((sound: NotificationSound) => {
+    setState((prev) => ({ ...prev, notificationSound: sound }));
+  }, []);
+
   const setActivityState = useCallback((sessionId: string, activityState: ClaudeActivityState) => {
     setState((prev) => ({
       ...prev,
@@ -191,6 +202,7 @@ export function useSessionStore() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
+    setNotificationSound,
     setActivityState,
   };
 }
