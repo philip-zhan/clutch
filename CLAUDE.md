@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+* When in plan mode, always save the plan in the `/docs/plans` folder.
+
 ## Project Overview
 
 **Clutch Desktop** is a multi-session terminal UI for Claude Code, built with React + Tauri. Each session runs an independent PTY with xterm.js rendering. Sessions persist across app restarts via `@tauri-apps/plugin-store`.
