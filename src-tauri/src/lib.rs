@@ -8,7 +8,7 @@ use commands::{
     cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
     session_write, setup_session_worktree, PtyState,
 };
-use notifications::NotifyDir;
+use notifications::SessionsDir;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
@@ -25,7 +25,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PtyState(Mutex::new(HashMap::new())))
         .manage(Arc::new(
-            NotifyDir::new().expect("Failed to create notification directory"),
+            SessionsDir::new().expect("Failed to create sessions directory"),
         ))
         .invoke_handler(tauri::generate_handler![
             create_session,
@@ -37,12 +37,12 @@ pub fn run() {
             cleanup_session_worktree,
         ])
         .setup(|app| {
-            // Auto-configure Claude Code hooks (Notification + Stop)
+            // Auto-configure Claude Code hooks (UserPromptSubmit + Stop + Notification)
             hooks_config::ensure_hooks();
 
-            // Start notification directory poller
-            let notify_dir: Arc<NotifyDir> = app.state::<Arc<NotifyDir>>().inner().clone();
-            notifications::start_notification_poller(app.handle().clone(), notify_dir);
+            // Start session activity poller
+            let sessions_dir: Arc<SessionsDir> = app.state::<Arc<SessionsDir>>().inner().clone();
+            notifications::start_session_activity_poller(app.handle().clone(), sessions_dir);
 
             // Set up tray icon click handler
             if let Some(tray) = app.tray_by_id("main") {

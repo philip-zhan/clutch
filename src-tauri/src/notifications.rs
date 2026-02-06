@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
@@ -5,82 +6,125 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 #[derive(Clone, serde::Serialize)]
-pub struct NeedsAttentionPayload {
+pub struct SessionActivityPayload {
     pub session_id: String,
+    pub activity: String, // "running" | "finished" | "needs_input"
 }
 
-#[derive(Clone, serde::Serialize)]
-pub struct SessionStoppedPayload {
-    pub session_id: String,
-}
-
-pub struct NotifyDir {
+pub struct SessionsDir {
     pub path: PathBuf,
 }
 
-impl NotifyDir {
+impl SessionsDir {
     pub fn new() -> Result<Self, String> {
-        let pid = std::process::id();
-        let path = std::env::temp_dir().join(format!("clutch-notifications-{}", pid));
+        let home = std::env::var("HOME")
+            .map_err(|_| "HOME environment variable not set".to_string())?;
+        let path = PathBuf::from(home).join(".clutch").join("sessions");
         std::fs::create_dir_all(&path)
-            .map_err(|e| format!("Failed to create notification dir: {}", e))?;
+            .map_err(|e| format!("Failed to create sessions dir: {}", e))?;
         Ok(Self { path })
     }
 
-    pub fn path_str(&self) -> String {
-        self.path.to_string_lossy().to_string()
+    pub fn create_session_dir(&self, session_id: &str) {
+        let session_dir = self.path.join(session_id);
+        let _ = std::fs::create_dir_all(&session_dir);
+        // Write empty status file so the poller can seed it
+        let _ = std::fs::write(session_dir.join("status"), "");
+    }
+
+    pub fn remove_session_dir(&self, session_id: &str) {
+        let session_dir = self.path.join(session_id);
+        let _ = std::fs::remove_dir_all(&session_dir);
     }
 }
 
-impl Drop for NotifyDir {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.path);
-    }
-}
-
-pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDir>) {
-    eprintln!("[clutch:poller] watching dir: {:?}", notify_dir.path);
-    thread::spawn(move || loop {
-        thread::sleep(Duration::from_millis(500));
-
-        let entries = match std::fs::read_dir(&notify_dir.path) {
-            Ok(entries) => entries,
-            Err(_) => continue,
-        };
-
-        for entry in entries.flatten() {
-            let file_name = entry.file_name();
-            let name = file_name.to_string_lossy().to_string();
-            eprintln!("[clutch:poller] found file: {}", name);
-
-            let _ = std::fs::remove_file(entry.path());
-
-            if let Some(session_id) = name.strip_prefix("stop_") {
-                eprintln!("[clutch:poller] emitting session-stopped for {}", session_id);
-                let _ = app_handle.emit(
-                    "session-stopped",
-                    SessionStoppedPayload {
-                        session_id: session_id.to_string(),
-                    },
-                );
-            } else if let Some(session_id) = name.strip_prefix("notify_") {
-                eprintln!("[clutch:poller] emitting session-needs-attention for {}", session_id);
-                let _ = app_handle.emit(
-                    "session-needs-attention",
-                    NeedsAttentionPayload {
-                        session_id: session_id.to_string(),
-                    },
-                );
-            } else {
-                // Legacy: bare session_id without prefix → treat as notification
-                eprintln!("[clutch:poller] emitting session-needs-attention (legacy) for {}", name);
-                let _ = app_handle.emit(
-                    "session-needs-attention",
-                    NeedsAttentionPayload {
-                        session_id: name,
-                    },
-                );
+pub fn start_session_activity_poller(app_handle: AppHandle, sessions_dir: Arc<SessionsDir>) {
+    eprintln!(
+        "[clutch:poller] watching sessions dir: {:?}",
+        sessions_dir.path
+    );
+    thread::spawn(move || {
+        // Seed last-seen content from existing status files
+        let mut last_seen: HashMap<String, String> = HashMap::new();
+        if let Ok(entries) = std::fs::read_dir(&sessions_dir.path) {
+            for entry in entries.flatten() {
+                if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                    let session_id = entry.file_name().to_string_lossy().to_string();
+                    let status_path = entry.path().join("status");
+                    if let Ok(content) = std::fs::read_to_string(&status_path) {
+                        let trimmed = content.trim().to_string();
+                        last_seen.insert(session_id, trimmed);
+                    }
+                }
             }
+        }
+        eprintln!("[clutch:poller] seeded {} sessions", last_seen.len());
+
+        loop {
+            thread::sleep(Duration::from_millis(500));
+
+            let entries = match std::fs::read_dir(&sessions_dir.path) {
+                Ok(entries) => entries,
+                Err(_) => continue,
+            };
+
+            // Track which session IDs we see this cycle (to clean up stale map entries)
+            let mut seen_ids: Vec<String> = Vec::new();
+
+            for entry in entries.flatten() {
+                if !entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                    continue;
+                }
+
+                let session_id = entry.file_name().to_string_lossy().to_string();
+                seen_ids.push(session_id.clone());
+
+                let status_path = entry.path().join("status");
+                let content = match std::fs::read_to_string(&status_path) {
+                    Ok(c) => c.trim().to_string(),
+                    Err(_) => continue,
+                };
+
+                // Skip empty content (initial state)
+                if content.is_empty() {
+                    last_seen.entry(session_id).or_default();
+                    continue;
+                }
+
+                let prev = last_seen.get(&session_id).map(|s| s.as_str()).unwrap_or("");
+                if content != prev {
+                    let activity = match content.as_str() {
+                        "UserPromptSubmit" => "running",
+                        "Stop" => "finished",
+                        "Notification" => "needs_input",
+                        other => {
+                            eprintln!(
+                                "[clutch:poller] unknown status content '{}' for {}",
+                                other, session_id
+                            );
+                            continue;
+                        }
+                    };
+
+                    eprintln!(
+                        "[clutch:poller] session {} activity changed: {} -> {} ({})",
+                        session_id, prev, content, activity
+                    );
+
+                    let _ = app_handle.emit(
+                        "session-activity-changed",
+                        SessionActivityPayload {
+                            session_id: session_id.clone(),
+                            activity: activity.to_string(),
+                        },
+                    );
+
+                    last_seen.insert(session_id, content);
+                }
+            }
+
+            // Clean up map entries for deleted session dirs
+            last_seen.retain(|id, _| seen_ids.contains(id));
         }
     });
 }

@@ -184,30 +184,28 @@ function App() {
     [setActiveSession, setActivityState, sessions]
   );
 
-  // Listen for session attention notifications from Rust backend
+  // Listen for session activity changes from Rust backend
   useEffect(() => {
-    let unlistenAttention: (() => void) | null = null;
-    let unlistenStopped: (() => void) | null = null;
+    let unlisten: (() => void) | null = null;
 
-    listen<{ session_id: string }>("session-needs-attention", (event) => {
-      const sessionId = event.payload.session_id;
-      if (sessionId !== activeSessionIdRef.current) {
-        setActivityState(sessionId, "needs_input");
+    listen<{ session_id: string; activity: string }>("session-activity-changed", (event) => {
+      const { session_id: sessionId, activity } = event.payload;
+
+      if (activity === "running") {
+        setActivityState(sessionId, "running");
+      } else if (activity === "finished") {
+        setActivityState(sessionId, "finished");
+      } else if (activity === "needs_input") {
+        if (sessionId !== activeSessionIdRef.current) {
+          setActivityState(sessionId, "needs_input");
+        }
       }
     }).then((fn) => {
-      unlistenAttention = fn;
-    });
-
-    listen<{ session_id: string }>("session-stopped", (event) => {
-      const sessionId = event.payload.session_id;
-      setActivityState(sessionId, "finished");
-    }).then((fn) => {
-      unlistenStopped = fn;
+      unlisten = fn;
     });
 
     return () => {
-      unlistenAttention?.();
-      unlistenStopped?.();
+      unlisten?.();
     };
   }, [setActivityState]);
 
@@ -317,11 +315,6 @@ function App() {
                 command={session.command}
                 isActive={session.id === activeSessionId}
                 onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
-                onEnterPress={() => {
-                  if (session.status === "running") {
-                    setActivityState(session.id, "running");
-                  }
-                }}
               />
             </div>
           ))}

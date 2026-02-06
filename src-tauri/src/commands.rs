@@ -1,5 +1,5 @@
 use crate::git;
-use crate::notifications::NotifyDir;
+use crate::notifications::SessionsDir;
 use crate::pty::PtyManager;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -10,7 +10,7 @@ pub struct PtyState(pub Mutex<HashMap<String, PtyManager>>);
 #[tauri::command]
 pub fn create_session(
     state: State<'_, PtyState>,
-    notify_dir: State<'_, Arc<NotifyDir>>,
+    sessions_dir: State<'_, Arc<SessionsDir>>,
     app_handle: AppHandle,
     session_id: String,
     cols: u16,
@@ -28,8 +28,10 @@ pub fn create_session(
         return Ok(());
     }
 
+    // Create session directory for status tracking
+    sessions_dir.create_session_dir(&session_id);
+
     let env_vars = vec![
-        ("CLUTCH_NOTIFY_DIR".to_string(), notify_dir.path_str()),
         ("CLUTCH_SESSION_ID".to_string(), session_id.clone()),
     ];
 
@@ -42,7 +44,11 @@ pub fn create_session(
 }
 
 #[tauri::command]
-pub fn destroy_session(state: State<'_, PtyState>, session_id: String) -> Result<(), String> {
+pub fn destroy_session(
+    state: State<'_, PtyState>,
+    sessions_dir: State<'_, Arc<SessionsDir>>,
+    session_id: String,
+) -> Result<(), String> {
     let mut map = state
         .0
         .lock()
@@ -50,13 +56,17 @@ pub fn destroy_session(state: State<'_, PtyState>, session_id: String) -> Result
 
     // Removing from the map drops PtyManager, which closes the PTY
     map.remove(&session_id);
+
+    // Clean up session directory
+    sessions_dir.remove_session_dir(&session_id);
+
     Ok(())
 }
 
 #[tauri::command]
 pub fn restart_session(
     state: State<'_, PtyState>,
-    notify_dir: State<'_, Arc<NotifyDir>>,
+    sessions_dir: State<'_, Arc<SessionsDir>>,
     app_handle: AppHandle,
     session_id: String,
     cols: u16,
@@ -73,8 +83,10 @@ pub fn restart_session(
         map.remove(&session_id);
     }
 
+    // Note: don't remove session dir here — create_session will reuse it
+
     // Create new
-    create_session(state, notify_dir, app_handle, session_id, cols, rows, working_dir, command)
+    create_session(state, sessions_dir, app_handle, session_id, cols, rows, working_dir, command)
 }
 
 #[tauri::command]

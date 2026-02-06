@@ -11,7 +11,6 @@ export interface TerminalProps {
   command?: string;
   isActive: boolean;
   onStatusChange?: (status: "running" | "exited") => void;
-  onEnterPress?: () => void;
 }
 
 export function Terminal({
@@ -20,7 +19,6 @@ export function Terminal({
   command,
   isActive,
   onStatusChange,
-  onEnterPress,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
@@ -120,9 +118,6 @@ export function Terminal({
 
     terminal.onData((data) => {
       write(data);
-      if (data.includes("\r") || data.includes("\n")) {
-        onEnterPress?.();
-      }
     });
 
     const handleResize = () => {

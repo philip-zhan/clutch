@@ -6,15 +6,14 @@ fn claude_settings_path() -> Option<PathBuf> {
     Some(PathBuf::from(home).join(".claude").join("settings.json"))
 }
 
-const NOTIFY_HOOK_COMMAND: &str =
-    r#"test -n "$CLUTCH_NOTIFY_DIR" && test -n "$CLUTCH_SESSION_ID" && touch "$CLUTCH_NOTIFY_DIR/notify_$CLUTCH_SESSION_ID""#;
+const PROMPT_SUBMIT_HOOK: &str =
+    r#"echo "UserPromptSubmit" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
 
-const STOP_HOOK_COMMAND: &str =
-    r#"test -n "$CLUTCH_NOTIFY_DIR" && test -n "$CLUTCH_SESSION_ID" && touch "$CLUTCH_NOTIFY_DIR/stop_$CLUTCH_SESSION_ID""#;
+const STOP_HOOK: &str =
+    r#"echo "Stop" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
 
-/// Legacy command without prefix — used for detection and migration
-const LEGACY_HOOK_COMMAND: &str =
-    r#"test -n "$CLUTCH_NOTIFY_DIR" && test -n "$CLUTCH_SESSION_ID" && touch "$CLUTCH_NOTIFY_DIR/$CLUTCH_SESSION_ID""#;
+const NOTIFY_HOOK: &str =
+    r#"echo "Notification" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
 
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
@@ -48,11 +47,14 @@ pub fn ensure_hooks() {
         None => return,
     };
 
-    // --- Notification hook ---
-    ensure_hook_entry(hooks_obj, "Notification", NOTIFY_HOOK_COMMAND);
+    // --- UserPromptSubmit hook ---
+    ensure_hook_entry(hooks_obj, "UserPromptSubmit", PROMPT_SUBMIT_HOOK);
 
     // --- Stop hook ---
-    ensure_hook_entry(hooks_obj, "Stop", STOP_HOOK_COMMAND);
+    ensure_hook_entry(hooks_obj, "Stop", STOP_HOOK);
+
+    // --- Notification hook ---
+    ensure_hook_entry(hooks_obj, "Notification", NOTIFY_HOOK);
 
     if let Ok(formatted) = serde_json::to_string_pretty(&settings) {
         let _ = std::fs::write(&settings_path, formatted);
@@ -60,7 +62,7 @@ pub fn ensure_hooks() {
 }
 
 /// Ensure a hook entry exists for the given event type with the given command.
-/// Migrates legacy (unprefixed) entries if found.
+/// Migrates legacy entries containing `CLUTCH_NOTIFY_DIR` if found.
 fn ensure_hook_entry(
     hooks_obj: &mut serde_json::Map<String, Value>,
     event_type: &str,
@@ -82,22 +84,8 @@ fn ensure_hook_entry(
         return;
     }
 
-    // Migrate legacy unprefixed command if present (only relevant for Notification)
-    let legacy_idx = arr
-        .iter()
-        .position(|entry| entry_has_command(entry, LEGACY_HOOK_COMMAND));
-
-    if let Some(idx) = legacy_idx {
-        // Replace legacy entry with the new prefixed command
-        arr[idx] = json!({
-            "matcher": "",
-            "hooks": [{ "type": "command", "command": command }]
-        });
-        return;
-    }
-
-    // Check if there's any CLUTCH_NOTIFY_DIR entry (e.g. old prefixed command)
-    let clutch_idx = arr.iter().position(|entry| {
+    // Migrate any entry containing CLUTCH_NOTIFY_DIR (old touch-based commands)
+    let legacy_idx = arr.iter().position(|entry| {
         entry
             .get("hooks")
             .and_then(|h| h.as_array())
@@ -112,8 +100,8 @@ fn ensure_hook_entry(
             .unwrap_or(false)
     });
 
-    if let Some(idx) = clutch_idx {
-        // Update existing clutch entry to new command
+    if let Some(idx) = legacy_idx {
+        // Replace legacy entry with the new command
         arr[idx] = json!({
             "matcher": "",
             "hooks": [{ "type": "command", "command": command }]
