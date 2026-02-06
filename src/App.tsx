@@ -171,17 +171,11 @@ function App() {
     activeSessionIdRef.current = activeSessionId;
   }, [activeSessionId]);
 
-  // Wrap setActiveSession to clear attention on switch
   const handleSelectSession = useCallback(
     (sessionId: string) => {
       setActiveSession(sessionId);
-      // Clear "needs_input" pulsing when selecting a tab
-      const session = sessions.find((s) => s.id === sessionId);
-      if (session?.activityState === "needs_input") {
-        setActivityState(sessionId, "idling");
-      }
     },
-    [setActiveSession, setActivityState, sessions]
+    [setActiveSession]
   );
 
   // Listen for session activity changes from Rust backend
