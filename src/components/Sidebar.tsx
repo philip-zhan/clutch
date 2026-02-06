@@ -15,6 +15,23 @@ interface SidebarProps {
   onRename: (sessionId: string, name: string) => void;
 }
 
+function getActivityDot(session: Session): { color: string; animation?: string } {
+  if (session.status === "exited") {
+    return { color: "#52525b" };
+  }
+  switch (session.activityState) {
+    case "running":
+      return { color: "#3b82f6", animation: "pulse-running 2s ease-in-out infinite" };
+    case "finished":
+      return { color: "#10b981" };
+    case "needs_input":
+      return { color: "#f59e0b", animation: "pulse-attention 1.5s ease-in-out infinite" };
+    case "idling":
+    default:
+      return { color: "#52525b" };
+  }
+}
+
 export function Sidebar({
   sessions,
   activeSessionId,
@@ -99,96 +116,91 @@ function VerticalSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ padding: 6 }}>
-        {sessions.map((session) => (
-          <div
-            key={session.id}
-            className={cn(
-              "group flex items-center rounded-lg cursor-pointer transition-colors",
-              session.id === activeSessionId
-                ? "bg-surface-elevated text-foreground"
-                : "text-foreground-muted hover:bg-surface-elevated/50"
-            )}
-            style={{ padding: "8px 10px", marginBottom: 2 }}
-            onClick={() => onSelect(session.id)}
-            onDoubleClick={() => handleDoubleClick(session)}
-          >
+        {sessions.map((session) => {
+          const dot = getActivityDot(session);
+          return (
             <div
+              key={session.id}
               className={cn(
-                "rounded-full flex-shrink-0",
-                session.needsAttention
-                  ? "bg-warning"
-                  : session.status === "running"
-                    ? "bg-success"
-                    : "bg-foreground-subtle"
+                "group flex items-center rounded-lg cursor-pointer transition-colors",
+                session.id === activeSessionId
+                  ? "bg-surface-elevated text-foreground"
+                  : "text-foreground-muted hover:bg-surface-elevated/50"
               )}
-              style={{
-                width: 7,
-                height: 7,
-                marginRight: 10,
-                ...(session.needsAttention
-                  ? { animation: "pulse-attention 1.5s ease-in-out infinite" }
-                  : {}),
-              }}
-            />
-
-            <div className="flex-1 min-w-0">
-              {editingId === session.id ? (
-                <input
-                  ref={inputRef}
-                  className="w-full bg-transparent text-sm text-foreground outline-none border-b border-primary"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={commitRename}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitRename();
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                />
-              ) : (
-                <>
-                  <div className="text-sm truncate">
-                    {sessionDisplayName(session)}
-                  </div>
-                  {session.workingDir && session.name && (
-                    <div className="text-xs text-foreground-subtle truncate">
-                      {session.workingDir.split("/").pop()}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div
-              className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ gap: 2, marginLeft: 4 }}
+              style={{ padding: "8px 10px", marginBottom: 2 }}
+              onClick={() => onSelect(session.id)}
+              onDoubleClick={() => handleDoubleClick(session)}
             >
-              {session.status === "exited" && (
+              <div
+                className="rounded-full flex-shrink-0"
+                style={{
+                  width: 7,
+                  height: 7,
+                  marginRight: 10,
+                  backgroundColor: dot.color,
+                  ...(dot.animation ? { animation: dot.animation } : {}),
+                }}
+              />
+
+              <div className="flex-1 min-w-0">
+                {editingId === session.id ? (
+                  <input
+                    ref={inputRef}
+                    className="w-full bg-transparent text-sm text-foreground outline-none border-b border-primary"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={commitRename}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitRename();
+                      if (e.key === "Escape") setEditingId(null);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <div className="text-sm truncate">
+                      {sessionDisplayName(session)}
+                    </div>
+                    {session.workingDir && session.name && (
+                      <div className="text-xs text-foreground-subtle truncate">
+                        {session.workingDir.split("/").pop()}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div
+                className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ gap: 2, marginLeft: 4 }}
+              >
+                {session.status === "exited" && (
+                  <button
+                    className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
+                    style={{ width: 22, height: 22 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRestart(session.id);
+                    }}
+                    title="Restart"
+                  >
+                    <RotateCw className="h-3 w-3" />
+                  </button>
+                )}
                 <button
                   className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
                   style={{ width: 22, height: 22 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRestart(session.id);
+                    onClose(session.id);
                   }}
-                  title="Restart"
+                  title="Close"
                 >
-                  <RotateCw className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
-              )}
-              <button
-                className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
-                style={{ width: 22, height: 22 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose(session.id);
-                }}
-                title="Close"
-              >
-                <X className="h-3 w-3" />
-              </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="border-t border-border" style={{ padding: 8 }}>
@@ -217,50 +229,45 @@ function HorizontalSidebar({
       className="flex items-center border-b border-border bg-surface/50 overflow-x-auto"
       style={{ height: 40, minHeight: 40, paddingLeft: 8, paddingRight: 8, gap: 2 }}
     >
-      {sessions.map((session) => (
-        <div
-          key={session.id}
-          className={cn(
-            "group flex items-center rounded-md cursor-pointer transition-colors flex-shrink-0",
-            session.id === activeSessionId
-              ? "bg-surface-elevated text-foreground"
-              : "text-foreground-muted hover:bg-surface-elevated/50"
-          )}
-          style={{ padding: "4px 10px", gap: 6, height: 30 }}
-          onClick={() => onSelect(session.id)}
-        >
+      {sessions.map((session) => {
+        const dot = getActivityDot(session);
+        return (
           <div
+            key={session.id}
             className={cn(
-              "rounded-full flex-shrink-0",
-              session.needsAttention
-                ? "bg-warning"
-                : session.status === "running"
-                  ? "bg-success"
-                  : "bg-foreground-subtle"
+              "group flex items-center rounded-md cursor-pointer transition-colors flex-shrink-0",
+              session.id === activeSessionId
+                ? "bg-surface-elevated text-foreground"
+                : "text-foreground-muted hover:bg-surface-elevated/50"
             )}
-            style={{
-              width: 6,
-              height: 6,
-              ...(session.needsAttention
-                ? { animation: "pulse-attention 1.5s ease-in-out infinite" }
-                : {}),
-            }}
-          />
-          <span className="text-xs truncate" style={{ maxWidth: 120 }}>
-            {sessionDisplayName(session)}
-          </span>
-          <button
-            className="flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-foreground-subtle hover:text-foreground transition-opacity"
-            style={{ width: 16, height: 16 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose(session.id);
-            }}
+            style={{ padding: "4px 10px", gap: 6, height: 30 }}
+            onClick={() => onSelect(session.id)}
           >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      ))}
+            <div
+              className="rounded-full flex-shrink-0"
+              style={{
+                width: 6,
+                height: 6,
+                backgroundColor: dot.color,
+                ...(dot.animation ? { animation: dot.animation } : {}),
+              }}
+            />
+            <span className="text-xs truncate" style={{ maxWidth: 120 }}>
+              {sessionDisplayName(session)}
+            </span>
+            <button
+              className="flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-foreground-subtle hover:text-foreground transition-opacity"
+              style={{ width: 16, height: 16 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(session.id);
+              }}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        );
+      })}
 
       <button
         className="flex items-center justify-center rounded-md text-foreground-subtle hover:text-foreground hover:bg-surface-elevated transition-colors flex-shrink-0"

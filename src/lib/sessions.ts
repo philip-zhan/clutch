@@ -1,5 +1,7 @@
 export type SessionStatus = "running" | "exited";
 
+export type ClaudeActivityState = "idling" | "running" | "finished" | "needs_input";
+
 export type SidebarPosition = "left" | "right" | "top" | "bottom";
 
 export type WorktreeLocation = "sibling" | "home" | "custom";
@@ -14,7 +16,7 @@ export interface Session {
   worktreePath?: string;
   gitRepoPath?: string;
   originalWorkingDir?: string;
-  needsAttention?: boolean;
+  activityState?: ClaudeActivityState;
 }
 
 export function generateSessionId(): string {

@@ -9,6 +9,11 @@ pub struct NeedsAttentionPayload {
     pub session_id: String,
 }
 
+#[derive(Clone, serde::Serialize)]
+pub struct SessionStoppedPayload {
+    pub session_id: String,
+}
+
 pub struct NotifyDir {
     pub path: PathBuf,
 }
@@ -44,16 +49,33 @@ pub fn start_notification_poller(app_handle: AppHandle, notify_dir: Arc<NotifyDi
 
         for entry in entries.flatten() {
             let file_name = entry.file_name();
-            let session_id = file_name.to_string_lossy().to_string();
+            let name = file_name.to_string_lossy().to_string();
 
             let _ = std::fs::remove_file(entry.path());
 
-            let _ = app_handle.emit(
-                "session-needs-attention",
-                NeedsAttentionPayload {
-                    session_id,
-                },
-            );
+            if let Some(session_id) = name.strip_prefix("stop_") {
+                let _ = app_handle.emit(
+                    "session-stopped",
+                    SessionStoppedPayload {
+                        session_id: session_id.to_string(),
+                    },
+                );
+            } else if let Some(session_id) = name.strip_prefix("notify_") {
+                let _ = app_handle.emit(
+                    "session-needs-attention",
+                    NeedsAttentionPayload {
+                        session_id: session_id.to_string(),
+                    },
+                );
+            } else {
+                // Legacy: bare session_id without prefix → treat as notification
+                let _ = app_handle.emit(
+                    "session-needs-attention",
+                    NeedsAttentionPayload {
+                        session_id: name,
+                    },
+                );
+            }
         }
     });
 }

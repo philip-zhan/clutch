@@ -37,8 +37,8 @@ pub fn run() {
             cleanup_session_worktree,
         ])
         .setup(|app| {
-            // Auto-configure Claude Code notification hook
-            hooks_config::ensure_notification_hook();
+            // Auto-configure Claude Code hooks (Notification + Stop)
+            hooks_config::ensure_hooks();
 
             // Start notification directory poller
             let notify_dir: Arc<NotifyDir> = app.state::<Arc<NotifyDir>>().inner().clone();

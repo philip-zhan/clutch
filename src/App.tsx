@@ -35,7 +35,7 @@ function App() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
-    setNeedsAttention,
+    setActivityState,
   } = useSessionStore();
 
   const updater = useUpdater();
@@ -87,6 +87,7 @@ function App() {
         worktreePath,
         gitRepoPath,
         originalWorkingDir,
+        activityState: "idling",
       };
       addSession(session);
     },
@@ -174,28 +175,41 @@ function App() {
   const handleSelectSession = useCallback(
     (sessionId: string) => {
       setActiveSession(sessionId);
-      setNeedsAttention(sessionId, false);
+      // Clear "needs_input" pulsing when selecting a tab
+      const session = sessions.find((s) => s.id === sessionId);
+      if (session?.activityState === "needs_input") {
+        setActivityState(sessionId, "idling");
+      }
     },
-    [setActiveSession, setNeedsAttention]
+    [setActiveSession, setActivityState, sessions]
   );
 
   // Listen for session attention notifications from Rust backend
   useEffect(() => {
-    let unlisten: (() => void) | null = null;
+    let unlistenAttention: (() => void) | null = null;
+    let unlistenStopped: (() => void) | null = null;
 
     listen<{ session_id: string }>("session-needs-attention", (event) => {
       const sessionId = event.payload.session_id;
       if (sessionId !== activeSessionIdRef.current) {
-        setNeedsAttention(sessionId, true);
+        setActivityState(sessionId, "needs_input");
       }
     }).then((fn) => {
-      unlisten = fn;
+      unlistenAttention = fn;
+    });
+
+    listen<{ session_id: string }>("session-stopped", (event) => {
+      const sessionId = event.payload.session_id;
+      setActivityState(sessionId, "finished");
+    }).then((fn) => {
+      unlistenStopped = fn;
     });
 
     return () => {
-      unlisten?.();
+      unlistenAttention?.();
+      unlistenStopped?.();
     };
-  }, [setNeedsAttention]);
+  }, [setActivityState]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -303,6 +317,11 @@ function App() {
                 command={session.command}
                 isActive={session.id === activeSessionId}
                 onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
+                onEnterPress={() => {
+                  if (session.status === "running") {
+                    setActivityState(session.id, "running");
+                  }
+                }}
               />
             </div>
           ))}

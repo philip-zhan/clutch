@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
-import type { Session, SidebarPosition, WorktreeLocation } from "@/lib/sessions";
+import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
 
 const STORE_FILE = "sessions.json";
 
@@ -44,7 +44,7 @@ export function useSessionStore() {
       const sessions = ((await store.get<Session[]>("sessions")) ?? []).map((s) => ({
         ...s,
         status: "exited" as const,
-        needsAttention: false,
+        activityState: "idling" as const,
       }));
       const activeSessionId = await store.get<string>("activeSessionId");
       const sidebarPosition =
@@ -91,7 +91,7 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      await store.set("sessions", state.sessions.map(({ needsAttention: _, ...s }) => s));
+      await store.set("sessions", state.sessions.map(({ activityState: _, ...s }) => s));
       await store.set("activeSessionId", state.activeSessionId);
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
@@ -168,11 +168,11 @@ export function useSessionStore() {
     setState((prev) => ({ ...prev, branchPrefix: prefix }));
   }, []);
 
-  const setNeedsAttention = useCallback((sessionId: string, needsAttention: boolean) => {
+  const setActivityState = useCallback((sessionId: string, activityState: ClaudeActivityState) => {
     setState((prev) => ({
       ...prev,
       sessions: prev.sessions.map((s) =>
-        s.id === sessionId ? { ...s, needsAttention } : s
+        s.id === sessionId ? { ...s, activityState } : s
       ),
     }));
   }, []);
@@ -191,6 +191,6 @@ export function useSessionStore() {
     setWorktreeLocation,
     setWorktreeCustomPath,
     setBranchPrefix,
-    setNeedsAttention,
+    setActivityState,
   };
 }
