@@ -1,8 +1,11 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
+import { SearchAddon } from "@xterm/addon-search";
+import type { ISearchOptions } from "@xterm/addon-search";
 import { usePty } from "../hooks/usePty";
+import { TerminalSearchBar } from "./TerminalSearchBar";
 import "@xterm/xterm/css/xterm.css";
 
 export interface TerminalProps {
@@ -23,7 +26,11 @@ export function Terminal({
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const searchAddonRef = useRef<SearchAddon | null>(null);
   const hasReceivedData = useRef(false);
+  const searchQueryRef = useRef("");
+  const searchOptionsRef = useRef<ISearchOptions>({});
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleData = useCallback((data: string) => {
     if (!hasReceivedData.current) {
@@ -58,6 +65,39 @@ export function Terminal({
       });
     }
   }, [isActive, resize]);
+
+  // Cmd+F / Cmd+G keyboard handler (capture phase to intercept before browser/xterm)
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.key === "f") {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsSearchOpen(true);
+        return;
+      }
+
+      if (e.metaKey && e.key === "g" && isSearchOpen && searchAddonRef.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) {
+          searchAddonRef.current.findPrevious(
+            searchQueryRef.current,
+            searchOptionsRef.current,
+          );
+        } else {
+          searchAddonRef.current.findNext(
+            searchQueryRef.current,
+            searchOptionsRef.current,
+          );
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [isActive, isSearchOpen]);
 
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
@@ -97,14 +137,17 @@ export function Terminal({
 
     const fitAddon = new FitAddon();
     const webLinksAddon = new WebLinksAddon();
+    const searchAddon = new SearchAddon();
     terminal.loadAddon(fitAddon);
     terminal.loadAddon(webLinksAddon);
+    terminal.loadAddon(searchAddon);
 
     terminal.open(containerRef.current);
     fitAddon.fit();
 
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
+    searchAddonRef.current = searchAddon;
 
     const { cols, rows } = terminal;
 
@@ -142,14 +185,37 @@ export function Terminal({
       terminal.dispose();
       terminalRef.current = null;
       fitAddonRef.current = null;
+      searchAddonRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleSearchClose = useCallback(() => {
+    setIsSearchOpen(false);
+    terminalRef.current?.focus();
+  }, []);
+
+  const handleSearchChange = useCallback(
+    (query: string, options: ISearchOptions) => {
+      searchQueryRef.current = query;
+      searchOptionsRef.current = options;
+    },
+    [],
+  );
+
   return (
-    <div
-      ref={containerRef}
-      className="terminal-wrapper h-full w-full flex-1 bg-black"
-    />
+    <div style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%" }}>
+      <div
+        ref={containerRef}
+        className="terminal-wrapper h-full w-full flex-1 bg-black"
+      />
+      {isSearchOpen && searchAddonRef.current && (
+        <TerminalSearchBar
+          searchAddon={searchAddonRef.current}
+          onClose={handleSearchClose}
+          onSearchChange={handleSearchChange}
+        />
+      )}
+    </div>
   );
 }
