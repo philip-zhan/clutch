@@ -2,6 +2,10 @@
 
 Clutch is a terminal app optimized for running multiple Claude Code sessions.
 
+## Download
+
+[**macOS (Apple Silicon)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_macos_aarch64.dmg) | [**Linux (.deb)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.deb) | [**Linux (.AppImage)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.AppImage) | [**Linux (.rpm)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_x86_64.rpm)
+
 ## Features
 
 - **Auto worktree management** — Automatically creates and manages git worktrees for each session, keeping your work isolated
