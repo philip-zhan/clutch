@@ -51,7 +51,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYxNjY5QTkwQTNEMEQ3M0IKUldRNzE5Q2prSnBtOGRSVUhzRWRMK0hKR3RhUXkrZTFEbE80QUZ3Mk1BMHlnWXF6cmFjTWx3UzYK",
       "endpoints": [
-        "https://api.clutch.computer/api/updater/latest"
+        "https://github.com/philipzhan/clutch/releases/latest/download/latest.json"
       ]
     }
   }
