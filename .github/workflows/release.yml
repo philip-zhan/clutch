@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - release
 
 jobs:
   release:
@@ -82,8 +82,8 @@ jobs:
           # Frontend env
           VITE_API_URL: https://api.clutch.computer
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Clutch ${{ github.ref_name }}'
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: 'Clutch v__VERSION__'
           releaseBody: 'See the assets to download and install this version.'
           releaseDraft: true
           prerelease: false
