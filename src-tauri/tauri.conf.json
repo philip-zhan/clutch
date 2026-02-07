@@ -42,10 +42,7 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ],
-    "macOS": {
-      "signingIdentity": "Developer ID Application: Draft Technologies Ltd (D22PZDCXY5)"
-    }
+    ]
   },
   "plugins": {
     "updater": {
