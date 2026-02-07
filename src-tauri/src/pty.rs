@@ -54,9 +54,13 @@ impl PtyManager {
 
         match command {
             Some(cmd) if !cmd.is_empty() => {
-                // Run the specified command via login shell
+                // Run the specified command via login interactive shell.
+                // -i is needed so .zshrc/.bashrc are sourced (not just .zprofile),
+                // otherwise PATH additions from rc files are missing and commands
+                // like "claude" aren't found when the app is launched from Finder.
                 let mut shell_cmd = CommandBuilder::new(&shell);
                 shell_cmd.arg("-l");
+                shell_cmd.arg("-i");
                 shell_cmd.arg("-c");
 
                 let cwd_cmd = working_dir
