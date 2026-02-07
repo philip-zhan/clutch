@@ -12,7 +12,9 @@ use notifications::{poll_session_activity, SessionsDir};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
-use tauri::{ActivationPolicy, Manager, RunEvent, WindowEvent};
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
+use tauri::{Manager, RunEvent, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -47,6 +49,7 @@ pub fn run() {
                     if let TrayIconEvent::Click { .. } = event {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
+                            #[cfg(target_os = "macos")]
                             let _ = app.set_activation_policy(ActivationPolicy::Regular);
                             let _ = window.show();
                             let _ = window.set_focus();
@@ -72,11 +75,12 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app, event| {
+        .run(|_app, _event| {
             // Handle dock icon click on macOS
-            if let RunEvent::Reopen { .. } = event {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = app.set_activation_policy(ActivationPolicy::Regular);
+            #[cfg(target_os = "macos")]
+            if let RunEvent::Reopen { .. } = _event {
+                if let Some(window) = _app.get_webview_window("main") {
+                    let _ = _app.set_activation_policy(ActivationPolicy::Regular);
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
