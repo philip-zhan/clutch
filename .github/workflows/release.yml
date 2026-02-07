@@ -83,8 +83,8 @@ jobs:
           VITE_API_URL: https://api.clutch.computer
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'Clutch v__VERSION__'
+          releaseName: 'v__VERSION__'
           releaseBody: 'See the assets to download and install this version.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
