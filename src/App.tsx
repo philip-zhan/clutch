@@ -193,7 +193,7 @@ function App() {
                     if (content === lastSeen[sessionId]) continue;
                     lastSeen[sessionId] = content;
 
-                    if (content === "UserPromptSubmit") {
+                    if (content === "UserPromptSubmit" || content === "PreToolUse") {
                         setActivityState(sessionId, "running");
                     } else if (content === "Stop") {
                         setActivityState(sessionId, "finished");
