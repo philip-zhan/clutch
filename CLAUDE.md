@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-* When in plan mode, always save the plan in the `/docs/plans` folder.
+* When in plan mode, always save the plan in the `/plans` folder.
 
 ## Project Overview
 
