@@ -15,6 +15,9 @@ const STOP_HOOK: &str =
 const NOTIFY_HOOK: &str =
     r#"echo "Notification" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
 
+const PRE_TOOL_USE_HOOK: &str =
+    r#"echo "PreToolUse" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
+
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
     let Some(settings_path) = claude_settings_path() else {
@@ -55,6 +58,9 @@ pub fn ensure_hooks() {
 
     // --- Notification hook ---
     ensure_hook_entry(hooks_obj, "Notification", NOTIFY_HOOK);
+
+    // --- PreToolUse hook ---
+    ensure_hook_entry(hooks_obj, "PreToolUse", PRE_TOOL_USE_HOOK);
 
     if let Ok(formatted) = serde_json::to_string_pretty(&settings) {
         let _ = std::fs::write(&settings_path, formatted);
