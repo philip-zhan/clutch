@@ -1,25 +1,19 @@
 # Clutch
 
-Clutch is a desktop terminal that lets you run multiple Claude Code sessions side-by-side.
+Clutch is a terminal app optimized for running multiple Claude Code sessions.
 
-**Website:** https://clutch.computer
+## Download
+
+[**macOS (Apple Silicon)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_macos_aarch64.dmg) | [**Linux (.deb)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.deb) | [**Linux (.AppImage)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.AppImage) | [**Linux (.rpm)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_x86_64.rpm)
 
 ## Features
 
 - **Auto worktree management** — Automatically creates and manages git worktrees for each session, keeping your work isolated
-- **Attention notifications** — Get notified when Claude needs your attention, with optional auto-switch to the relevant tab
+- **Notifications** — Get notified when Claude needs your attention
 - **Session persistence** — Sessions restore across app restarts
-- **Keyboard-driven** — `Cmd+T` new session, `Cmd+W` close, `Cmd+1-9` switch, `Cmd+Shift+[/]` navigate
+- **Keyboard shortcuts** — `Cmd+T` new session, `Cmd+W` close, `Cmd+1-9` switch, `Cmd+Shift+[/]` navigate
 
-## Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh)
-- [Rust](https://rustup.rs)
-- Tauri v2 prerequisites — see [Tauri docs](https://v2.tauri.app/start/prerequisites/)
-
-### Development
+## Development
 
 ```bash
 bun install
