@@ -6,7 +6,7 @@ mod pty;
 
 use commands::{
     cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
-    session_write, setup_session_worktree, PtyState,
+    session_write, setup_session_worktree, PtyState, WorktreeRegistry,
 };
 use notifications::{poll_session_activity, SessionsDir};
 use std::collections::HashMap;
@@ -14,7 +14,6 @@ use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
-#[cfg(target_os = "macos")]
 use tauri::RunEvent;
 use tauri::{Manager, WindowEvent};
 
@@ -28,6 +27,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PtyState(Mutex::new(HashMap::new())))
+        .manage(WorktreeRegistry(Mutex::new(HashMap::new())))
         .manage(Arc::new(
             SessionsDir::new().expect("Failed to create sessions directory"),
         ))
@@ -78,14 +78,24 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app, _event| {
-            // Handle dock icon click on macOS
-            #[cfg(target_os = "macos")]
-            if let RunEvent::Reopen { .. } = _event {
-                if let Some(window) = _app.get_webview_window("main") {
-                    let _ = _app.set_activation_policy(ActivationPolicy::Regular);
-                    let _ = window.show();
-                    let _ = window.set_focus();
+            match &_event {
+                // Handle dock icon click on macOS
+                #[cfg(target_os = "macos")]
+                RunEvent::Reopen { .. } => {
+                    if let Some(window) = _app.get_webview_window("main") {
+                        let _ = _app.set_activation_policy(ActivationPolicy::Regular);
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
                 }
+                // Clean up all PTYs, session dirs, and worktrees on exit
+                RunEvent::Exit => {
+                    let pty_state = _app.state::<PtyState>();
+                    let sessions_dir = _app.state::<Arc<SessionsDir>>();
+                    let worktree_registry = _app.state::<WorktreeRegistry>();
+                    commands::cleanup_all(&pty_state, &sessions_dir, &worktree_registry);
+                }
+                _ => {}
             }
         });
 }

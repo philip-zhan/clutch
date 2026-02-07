@@ -44,12 +44,9 @@ export function useSessionStore() {
       const store = await Store.load(STORE_FILE);
       storeRef.current = store;
 
-      const sessions = ((await store.get<Session[]>("sessions")) ?? []).map((s) => ({
-        ...s,
-        status: "exited" as const,
-        activityState: "idling" as const,
-      }));
-      const activeSessionId = await store.get<string>("activeSessionId");
+      // Session persistence disabled — always start fresh
+      const sessions: Session[] = [];
+      const activeSessionId = null;
       const sidebarPosition =
         (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
       const defaultCommand =
@@ -97,8 +94,7 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      await store.set("sessions", state.sessions.map(({ activityState: _, ...s }) => s));
-      await store.set("activeSessionId", state.activeSessionId);
+      // Session persistence disabled — only persist settings
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
       await store.set("defaultWorkingDir", state.defaultWorkingDir);
