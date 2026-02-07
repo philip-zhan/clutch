@@ -14,7 +14,9 @@ use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
-use tauri::{Manager, RunEvent, WindowEvent};
+#[cfg(target_os = "macos")]
+use tauri::RunEvent;
+use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
