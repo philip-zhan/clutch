@@ -28,7 +28,7 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
         data-tauri-drag-region
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
         style={{
-          background: "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.8) 100%)",
+          background: "rgba(0,0,0,0.7)",
         }}
       />
       <div onClick={(e) => e.stopPropagation()}>{children}</div>
@@ -55,7 +55,7 @@ const DialogContent = React.forwardRef<
     <div
       className="absolute inset-x-0 top-0 h-px"
       style={{
-        background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 50%, transparent)",
+        background: "rgba(255,255,255,0.08)",
       }}
     />
     {children}

@@ -101,7 +101,7 @@ button, a, input {
   left: 0;
   right: 0;
   height: 40px;
-  background: linear-gradient(to bottom, #000000, transparent);
+  background: #000000;
   pointer-events: none;
   z-index: 1;
   opacity: 0.6;

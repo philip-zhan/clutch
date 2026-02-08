@@ -92,7 +92,7 @@ export function UpdateDialog({ state, onDownload, onDismiss }: UpdateDialogProps
 								style={{ height: 8 }}
 							>
 								<div
-									className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
+									className="h-full bg-primary transition-all duration-300"
 									style={{ width: `${state.progress}%` }}
 								/>
 							</div>
