@@ -112,7 +112,7 @@ button, a, input {
 }
 
 .terminal-wrapper .xterm-viewport {
-  overflow-y: auto !important;
+  overflow-y: scroll !important;
 }
 
 .terminal-wrapper .xterm-screen {
