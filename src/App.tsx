@@ -44,6 +44,10 @@ function App() {
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+    // Terminal panel state (per-session shell panel below main terminal)
+    const [mountedPanels, setMountedPanels] = useState<Set<string>>(new Set());
+    const [visiblePanels, setVisiblePanels] = useState<Set<string>>(new Set());
+
     // Track which terminal components are mounted to manage destroy
     const mountedSessionsRef = useRef<Set<string>>(new Set());
 
@@ -108,6 +112,25 @@ function App() {
         async (sessionId: string) => {
             const session = sessions.find((s) => s.id === sessionId);
 
+            // Destroy panel PTY if it was mounted
+            if (mountedPanels.has(sessionId)) {
+                try {
+                    await invoke("destroy_session", { sessionId: `${sessionId}_panel` });
+                } catch {
+                    // Panel PTY may already be gone
+                }
+                setMountedPanels((prev) => {
+                    const next = new Set(prev);
+                    next.delete(sessionId);
+                    return next;
+                });
+                setVisiblePanels((prev) => {
+                    const next = new Set(prev);
+                    next.delete(sessionId);
+                    return next;
+                });
+            }
+
             try {
                 await invoke("destroy_session", { sessionId });
             } catch {
@@ -139,7 +162,7 @@ function App() {
             mountedSessionsRef.current.delete(sessionId);
             removeSession(sessionId);
         },
-        [sessions, removeSession]
+        [sessions, removeSession, mountedPanels]
     );
 
     const handleRestartSession = useCallback(
@@ -177,6 +200,25 @@ function App() {
         },
         [setActiveSession]
     );
+
+    const handleTogglePanel = useCallback(() => {
+        if (!activeSessionId) return;
+
+        setVisiblePanels((prev) => {
+            const next = new Set(prev);
+            if (next.has(activeSessionId)) {
+                next.delete(activeSessionId);
+            } else {
+                next.add(activeSessionId);
+                setMountedPanels((mp) => {
+                    const nextMp = new Set(mp);
+                    nextMp.add(activeSessionId);
+                    return nextMp;
+                });
+            }
+            return next;
+        });
+    }, [activeSessionId]);
 
     // Poll session activity from Rust backend
     const lastSeenRef = useRef<Record<string, string>>({});
@@ -233,6 +275,13 @@ function App() {
                 return;
             }
 
+            // Cmd+J — Toggle terminal panel
+            if (e.key === "j" && !e.shiftKey) {
+                e.preventDefault();
+                handleTogglePanel();
+                return;
+            }
+
             // Cmd+, — Settings
             if (e.key === ",") {
                 e.preventDefault();
@@ -275,7 +324,7 @@ function App() {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [sessions, activeSessionId, handleSelectSession, handleCloseSession, handleNewSession]);
+    }, [sessions, activeSessionId, handleSelectSession, handleCloseSession, handleNewSession, handleTogglePanel]);
 
     // Determine flex direction based on sidebar position
     const flexDirection = {
@@ -287,7 +336,11 @@ function App() {
 
     return (
         <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-            <TitleBar onSettingsClick={() => setIsSettingsOpen(true)} />
+            <TitleBar
+                onSettingsClick={() => setIsSettingsOpen(true)}
+                onTogglePanel={handleTogglePanel}
+                isPanelVisible={activeSessionId ? visiblePanels.has(activeSessionId) : false}
+            />
 
             <div style={{ display: "flex", flexDirection, flex: 1, overflow: "hidden" }}>
                 <Sidebar
@@ -302,24 +355,51 @@ function App() {
                 />
 
                 <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
-                    {sessions.map((session) => (
-                        <div
-                            key={session.id}
-                            style={{
-                                display: session.id === activeSessionId ? "flex" : "none",
-                                flex: 1,
-                                overflow: "hidden",
-                            }}
-                        >
-                            <Terminal
-                                sessionId={session.id}
-                                workingDir={session.workingDir}
-                                command={session.command}
-                                isActive={session.id === activeSessionId}
-                                onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
-                            />
-                        </div>
-                    ))}
+                    {sessions.map((session) => {
+                        const isActive = session.id === activeSessionId;
+                        const isPanelMounted = mountedPanels.has(session.id);
+                        const isPanelVisible = visiblePanels.has(session.id);
+
+                        return (
+                            <div
+                                key={session.id}
+                                style={{
+                                    display: isActive ? "flex" : "none",
+                                    flexDirection: "column",
+                                    flex: 1,
+                                    overflow: "hidden",
+                                }}
+                            >
+                                <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+                                    <Terminal
+                                        sessionId={session.id}
+                                        workingDir={session.workingDir}
+                                        command={session.command}
+                                        isActive={isActive}
+                                        onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
+                                    />
+                                </div>
+
+                                {isPanelMounted && (
+                                    <div
+                                        className="border-t border-border"
+                                        style={{
+                                            display: isPanelVisible ? "flex" : "none",
+                                            height: 300,
+                                            minHeight: 100,
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <Terminal
+                                            sessionId={`${session.id}_panel`}
+                                            workingDir={session.workingDir}
+                                            isActive={isActive && isPanelVisible}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                     {sessions.length === 0 && (
                         <div
