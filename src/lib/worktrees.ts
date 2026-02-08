@@ -7,3 +7,11 @@ export interface Worktree {
 	command?: string; // command to run (e.g. "claude")
 	createdAt: number;
 }
+
+/** A non-worktree tab persisted across restarts (e.g. the default main-branch tab). */
+export interface PersistedTab {
+	id: string; // nanoid, stable across restarts
+	workingDir: string;
+	command?: string;
+	createdAt: number;
+}

@@ -5,7 +5,7 @@ import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId, generateBranchName } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
-import type { Worktree } from "./lib/worktrees";
+import type { Worktree, PersistedTab } from "./lib/worktrees";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
@@ -43,6 +43,9 @@ function App() {
         addWorktree,
         removeWorktree,
         getWorktree,
+        persistedTabs,
+        addPersistedTab,
+        removePersistedTab,
     } = useSessionStore();
 
     const updater = useUpdater();
@@ -69,6 +72,7 @@ function App() {
             const sessionId = generateSessionId();
             let effectiveDir = workingDir;
             let worktreeId: string | undefined;
+            let persistedTabId: string | undefined;
 
             if (worktreeEnabled && workingDir && sessions.length > 0) {
                 try {
@@ -103,6 +107,19 @@ function App() {
                 }
             }
 
+            // Persist non-worktree tabs so they survive restarts
+            if (!worktreeId) {
+                const tabId = nanoid();
+                const tab: PersistedTab = {
+                    id: tabId,
+                    workingDir: effectiveDir,
+                    command: command || undefined,
+                    createdAt: Date.now(),
+                };
+                addPersistedTab(tab);
+                persistedTabId = tabId;
+            }
+
             const session: Session = {
                 id: sessionId,
                 name,
@@ -111,80 +128,82 @@ function App() {
                 status: "running",
                 createdAt: Date.now(),
                 worktreeId,
+                persistedTabId,
                 activityState: "idling",
             };
             addSession(session);
         },
-        [addSession, addWorktree, sessions.length, worktreeEnabled, branchPrefix]
+        [addSession, addWorktree, addPersistedTab, sessions.length, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
         handleCreateSession("", defaultWorkingDir, defaultCommand);
     }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
 
-    // Startup: restore sessions from persisted worktrees
+    // Startup: restore sessions from persisted tabs + worktrees
     const hasRestoredRef = useRef(false);
     useEffect(() => {
         if (!isLoaded || hasRestoredRef.current) return;
         hasRestoredRef.current = true;
 
         const restore = async () => {
-            if (worktrees.length === 0) {
-                // No persisted worktrees — create a fresh main-branch session
-                handleNewSession();
-                return;
-            }
+            let hasAnyTab = false;
 
-            // Validate which worktree paths still exist on disk
-            const paths = worktrees.map((wt) => wt.worktreePath);
-            let valid: boolean[];
-            try {
-                valid = await invoke<boolean[]>("validate_worktrees", { worktreePaths: paths });
-            } catch {
-                // If validation fails, treat all as valid
-                valid = paths.map(() => true);
-            }
-
-            const validWorktrees: Worktree[] = [];
-            const invalidWorktreeIds: string[] = [];
-
-            for (let i = 0; i < worktrees.length; i++) {
-                if (valid[i]) {
-                    validWorktrees.push(worktrees[i]);
-                } else {
-                    invalidWorktreeIds.push(worktrees[i].id);
-                }
-            }
-
-            // Remove invalid worktrees from store
-            for (const id of invalidWorktreeIds) {
-                removeWorktree(id);
-            }
-
-            if (validWorktrees.length === 0) {
-                // All worktrees were invalid — create a fresh session
-                handleNewSession();
-                return;
-            }
-
-            // Create sessions for each valid worktree
-            for (const wt of validWorktrees) {
+            // Restore non-worktree tabs (e.g. main-branch tab)
+            for (const tab of persistedTabs) {
                 const session: Session = {
                     id: generateSessionId(),
                     name: "",
-                    workingDir: wt.worktreePath,
-                    command: wt.command,
+                    workingDir: tab.workingDir,
+                    command: tab.command,
                     status: "running",
                     createdAt: Date.now(),
-                    worktreeId: wt.id,
+                    persistedTabId: tab.id,
                     activityState: "idling",
                 };
                 addSession(session);
+                hasAnyTab = true;
+            }
+
+            // Validate and restore worktree tabs
+            if (worktrees.length > 0) {
+                const paths = worktrees.map((wt) => wt.worktreePath);
+                let valid: boolean[];
+                try {
+                    valid = await invoke<boolean[]>("validate_worktrees", { worktreePaths: paths });
+                } catch {
+                    valid = paths.map(() => true);
+                }
+
+                for (let i = 0; i < worktrees.length; i++) {
+                    if (valid[i]) {
+                        const wt = worktrees[i];
+                        const session: Session = {
+                            id: generateSessionId(),
+                            name: "",
+                            workingDir: wt.worktreePath,
+                            command: wt.command,
+                            status: "running",
+                            createdAt: Date.now(),
+                            worktreeId: wt.id,
+                            activityState: "idling",
+                        };
+                        addSession(session);
+                        hasAnyTab = true;
+                    } else {
+                        removeWorktree(worktrees[i].id);
+                    }
+                }
+            }
+
+            // If nothing was restored, create a fresh main-branch session
+            if (!hasAnyTab) {
+                handleNewSession();
             }
         };
 
         restore();
-    }, [isLoaded, worktrees, handleNewSession, addSession, removeWorktree]);
+    }, [isLoaded, worktrees, persistedTabs, handleNewSession, addSession, removeWorktree]);
 
     const handleCloseSession = useCallback(
         async (sessionId: string) => {
@@ -244,10 +263,15 @@ function App() {
                 }
             }
 
+            // Remove persisted tab record for non-worktree sessions
+            if (session?.persistedTabId) {
+                removePersistedTab(session.persistedTabId);
+            }
+
             mountedSessionsRef.current.delete(sessionId);
             removeSession(sessionId);
         },
-        [sessions, removeSession, mountedPanels, getWorktree, removeWorktree]
+        [sessions, removeSession, mountedPanels, getWorktree, removeWorktree, removePersistedTab]
     );
 
     const handleRestartSession = useCallback(

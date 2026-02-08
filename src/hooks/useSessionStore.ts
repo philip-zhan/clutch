@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
-import type { Worktree } from "@/lib/worktrees";
+import type { Worktree, PersistedTab } from "@/lib/worktrees";
 import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";
@@ -9,6 +9,7 @@ const STORE_FILE = "sessions.json";
 interface SessionStoreState {
   sessions: Session[];
   worktrees: Worktree[];
+  persistedTabs: PersistedTab[];
   activeSessionId: string | null;
   sidebarPosition: SidebarPosition;
   defaultCommand: string;
@@ -23,6 +24,7 @@ interface SessionStoreState {
 const DEFAULT_STATE: SessionStoreState = {
   sessions: [],
   worktrees: [],
+  persistedTabs: [],
   activeSessionId: null,
   sidebarPosition: "left",
   defaultCommand: "claude",
@@ -51,8 +53,9 @@ export function useSessionStore() {
       const sessions: Session[] = [];
       const activeSessionId = null;
 
-      // Worktrees persist across restarts
+      // Worktrees and plain tabs persist across restarts
       const worktrees = (await store.get<Worktree[]>("worktrees")) ?? [];
+      const persistedTabs = (await store.get<PersistedTab[]>("persistedTabs")) ?? [];
 
       const sidebarPosition =
         (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
@@ -75,6 +78,7 @@ export function useSessionStore() {
         setState({
           sessions,
           worktrees,
+          persistedTabs,
           activeSessionId,
           sidebarPosition,
           defaultCommand,
@@ -102,8 +106,9 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      // Worktrees persist across restarts
+      // Worktrees and plain tabs persist across restarts
       await store.set("worktrees", state.worktrees);
+      await store.set("persistedTabs", state.persistedTabs);
       // Settings persist
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
@@ -213,6 +218,20 @@ export function useSessionStore() {
     return state.worktrees.find((w) => w.id === worktreeId);
   }, [state.worktrees]);
 
+  const addPersistedTab = useCallback((tab: PersistedTab) => {
+    setState((prev) => ({
+      ...prev,
+      persistedTabs: [...prev.persistedTabs, tab],
+    }));
+  }, []);
+
+  const removePersistedTab = useCallback((tabId: string) => {
+    setState((prev) => ({
+      ...prev,
+      persistedTabs: prev.persistedTabs.filter((t) => t.id !== tabId),
+    }));
+  }, []);
+
   return {
     ...state,
     isLoaded: isLoadedRef.current,
@@ -232,5 +251,7 @@ export function useSessionStore() {
     addWorktree,
     removeWorktree,
     getWorktree,
+    addPersistedTab,
+    removePersistedTab,
   };
 }

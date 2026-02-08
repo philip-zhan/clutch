@@ -27,6 +27,7 @@ export interface Session {
 	status: SessionStatus;
 	createdAt: number;
 	worktreeId?: string; // FK → Worktree.id (undefined for main-branch session)
+	persistedTabId?: string; // FK → PersistedTab.id (for non-worktree tabs)
 	activityState?: ClaudeActivityState;
 	gitBranch?: string;
 }
