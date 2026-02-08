@@ -1,19 +1,18 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { usePolling } from "./hooks/usePolling";
 import { generateSessionId } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
-import { Terminal } from "./components/Terminal";
+import { SessionContent } from "./components/SessionContent";
 import { Settings } from "./components/Settings";
 import { UpdateDialog } from "./components/UpdateDialog";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "./components/ui/resizable";
 import type { PanelImperativeHandle } from "react-resizable-panels";
-import { playNotificationSound } from "./lib/sounds";
-import { Plus } from "lucide-react";
-import { useState } from "react";
 
 function App() {
     const {
@@ -53,10 +52,6 @@ function App() {
 
     // Refs for bottom panel imperative resize control
     const panelRefs = useRef<Map<string, PanelImperativeHandle | null>>(new Map());
-
-    // Ref for notification sound to avoid resetting poll interval on preference change
-    const notificationSoundRef = useRef(notificationSound);
-    notificationSoundRef.current = notificationSound;
 
     const handleCreateSession = useCallback(
         async (name: string, workingDir: string, command: string) => {
@@ -234,146 +229,19 @@ function App() {
         });
     }, [activeSessionId]);
 
-    // Poll session activity from Rust backend
-    const lastSeenRef = useRef<Record<string, string>>({});
-    useEffect(() => {
-        const sessionIds = sessions.filter((s) => s.status === "running").map((s) => s.id);
-        if (sessionIds.length === 0) return;
+    // Extracted hooks
+    usePolling({ sessions, notificationSound, setActivityState, updateSession });
 
-        const poll = async () => {
-            try {
-                const statuses = await invoke<Record<string, string>>("poll_session_activity", { sessionIds });
-                const lastSeen = lastSeenRef.current;
-
-                for (const [sessionId, content] of Object.entries(statuses)) {
-                    if (content === lastSeen[sessionId]) continue;
-                    lastSeen[sessionId] = content;
-
-                    if (content === "UserPromptSubmit" || content === "PreToolUse") {
-                        setActivityState(sessionId, "running");
-                    } else if (content === "Stop") {
-                        setActivityState(sessionId, "finished");
-                    } else if (content === "Notification") {
-                        setActivityState(sessionId, "needs_input");
-                        playNotificationSound(notificationSoundRef.current);
-                    }
-                }
-            } catch {
-                // Ignore poll errors
-            }
-        };
-
-        const interval = setInterval(poll, 250);
-        return () => clearInterval(interval);
-    }, [sessions, setActivityState]);
-
-    // Poll git branches for running sessions
-    useEffect(() => {
-        const runningSessions = sessions.filter((s) => s.status === "running" && s.workingDir);
-        if (runningSessions.length === 0) return;
-
-        const poll = async () => {
-            try {
-                const sessionDirs: Record<string, string> = {};
-                for (const s of runningSessions) {
-                    sessionDirs[s.id] = s.workingDir;
-                }
-                const branches = await invoke<Record<string, string>>("get_git_branches", { sessions: sessionDirs });
-                for (const [sessionId, branch] of Object.entries(branches)) {
-                    const session = sessions.find((s) => s.id === sessionId);
-                    if (session && session.gitBranch !== branch) {
-                        updateSession(sessionId, { gitBranch: branch });
-                    }
-                }
-            } catch {
-                // Ignore poll errors
-            }
-        };
-
-        poll(); // Initial fetch
-        const interval = setInterval(poll, 5000);
-        return () => clearInterval(interval);
-    }, [sessions, updateSession]);
-
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const isMeta = e.metaKey;
-            if (!isMeta) return;
-
-            // Cmd+B — Toggle sidebar
-            if (e.key === "b" && !e.shiftKey) {
-                e.preventDefault();
-                setSidebarCollapsed((prev) => !prev);
-                return;
-            }
-
-            // Cmd+T — New session
-            if (e.key === "t" && !e.shiftKey) {
-                e.preventDefault();
-                handleNewSession();
-                return;
-            }
-
-            // Cmd+W — Close active session
-            if (e.key === "w" && !e.shiftKey) {
-                e.preventDefault();
-                if (activeSessionId) {
-                    handleCloseSession(activeSessionId);
-                }
-                return;
-            }
-
-            // Cmd+J — Toggle terminal panel
-            if (e.key === "j" && !e.shiftKey) {
-                e.preventDefault();
-                handleTogglePanel();
-                return;
-            }
-
-            // Cmd+, — Settings
-            if (e.key === ",") {
-                e.preventDefault();
-                setIsSettingsOpen(true);
-                return;
-            }
-
-            // Cmd+1-9 — Switch to session N
-            if (e.key >= "1" && e.key <= "9") {
-                e.preventDefault();
-                const index = parseInt(e.key) - 1;
-                if (index < sessions.length) {
-                    handleSelectSession(sessions[index].id);
-                }
-                return;
-            }
-
-            // Cmd+Shift+[ — Previous session
-            if (e.key === "[" && e.shiftKey) {
-                e.preventDefault();
-                if (sessions.length > 1 && activeSessionId) {
-                    const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
-                    const prevIndex = (currentIndex - 1 + sessions.length) % sessions.length;
-                    handleSelectSession(sessions[prevIndex].id);
-                }
-                return;
-            }
-
-            // Cmd+Shift+] — Next session
-            if (e.key === "]" && e.shiftKey) {
-                e.preventDefault();
-                if (sessions.length > 1 && activeSessionId) {
-                    const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
-                    const nextIndex = (currentIndex + 1) % sessions.length;
-                    handleSelectSession(sessions[nextIndex].id);
-                }
-                return;
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [sessions, activeSessionId, handleSelectSession, handleCloseSession, handleNewSession, handleTogglePanel]);
+    useKeyboardShortcuts({
+        sessions,
+        activeSessionId,
+        onSelectSession: handleSelectSession,
+        onNewSession: handleNewSession,
+        onCloseSession: handleCloseSession,
+        onTogglePanel: handleTogglePanel,
+        onToggleSidebar: useCallback(() => setSidebarCollapsed((prev) => !prev), []),
+        onOpenSettings: useCallback(() => setIsSettingsOpen(true), []),
+    });
 
     const isVerticalSidebar = sidebarPosition === "left" || sidebarPosition === "right";
 
@@ -409,122 +277,16 @@ function App() {
                 );
 
                 const contentElement = (
-                    <div style={{ display: "flex", flex: 1, height: "100%", width: "100%", overflow: "hidden", position: "relative" }}>
-                        {sessions.map((session) => {
-                            const isActive = session.id === activeSessionId;
-                            const isPanelMounted = mountedPanels.has(session.id);
-
-                            return (
-                                <div
-                                    key={session.id}
-                                    style={{
-                                        display: isActive ? "flex" : "none",
-                                        flexDirection: "column",
-                                        flex: 1,
-                                        height: "100%",
-                                        overflow: "hidden",
-                                    }}
-                                >
-                                    <ResizablePanelGroup orientation="vertical">
-                                        <ResizablePanel minSize={200}>
-                                            <Terminal
-                                                sessionId={session.id}
-                                                workingDir={session.workingDir}
-                                                command={session.command}
-                                                isActive={isActive}
-                                                onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
-                                            />
-                                        </ResizablePanel>
-
-                                        {isPanelMounted && (
-                                            <>
-                                                <ResizableHandle />
-                                                <ResizablePanel
-                                                    panelRef={(handle) => {
-                                                        if (handle) {
-                                                            panelRefs.current.set(session.id, handle);
-                                                        } else {
-                                                            panelRefs.current.delete(session.id);
-                                                        }
-                                                    }}
-                                                    collapsible
-                                                    defaultSize={300}
-                                                    minSize={100}
-                                                    style={{ backgroundColor: "#0c0c0e" }}
-                                                    onResize={(panelSize) => {
-                                                        const isCollapsed = panelSize.asPercentage === 0;
-                                                        setVisiblePanels((prev) => {
-                                                            const wasVisible = prev.has(session.id);
-                                                            if (isCollapsed && wasVisible) {
-                                                                const next = new Set(prev);
-                                                                next.delete(session.id);
-                                                                return next;
-                                                            }
-                                                            if (!isCollapsed && !wasVisible) {
-                                                                const next = new Set(prev);
-                                                                next.add(session.id);
-                                                                return next;
-                                                            }
-                                                            return prev;
-                                                        });
-                                                    }}
-                                                >
-                                                    <div style={{ padding: "8px 0 0 8px", height: "100%", backgroundColor: "#0c0c0e" }}>
-                                                        <Terminal
-                                                            sessionId={`${session.id}_panel`}
-                                                            workingDir={session.workingDir}
-                                                            isActive={isActive && visiblePanels.has(session.id)}
-                                                            backgroundColor="#0c0c0e"
-                                                            showGradient={false}
-                                                        />
-                                                    </div>
-                                                </ResizablePanel>
-                                            </>
-                                        )}
-                                    </ResizablePanelGroup>
-                                </div>
-                            );
-                        })}
-
-                        {sessions.length === 0 && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    flex: 1,
-                                    gap: 16,
-                                }}
-                            >
-                                <div
-                                    className="rounded-full bg-surface-elevated"
-                                    style={{
-                                        width: 64,
-                                        height: 64,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <Plus className="h-8 w-8 text-foreground-subtle" />
-                                </div>
-                                <div style={{ textAlign: "center" }}>
-                                    <p className="text-foreground-muted text-sm">No sessions yet</p>
-                                    <p className="text-foreground-subtle text-xs" style={{ marginTop: 4 }}>
-                                        Press <kbd className="font-mono text-foreground-muted">⌘T</kbd> or click below to start
-                                    </p>
-                                </div>
-                                <button
-                                    className="rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors"
-                                    style={{ padding: "8px 20px" }}
-                                    onClick={handleNewSession}
-                                >
-                                    Create your first session
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <SessionContent
+                        sessions={sessions}
+                        activeSessionId={activeSessionId}
+                        mountedPanels={mountedPanels}
+                        visiblePanels={visiblePanels}
+                        setVisiblePanels={setVisiblePanels}
+                        panelRefs={panelRefs}
+                        onStatusChange={handleSessionStatusChange}
+                        onNewSession={handleNewSession}
+                    />
                 );
 
                 if (isVerticalSidebar) {
