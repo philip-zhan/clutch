@@ -30,17 +30,16 @@ pub fn find_git_root(dir: &str) -> Option<String> {
     }
 }
 
-/// Create a worktree for the given session.
+/// Create a worktree with the given branch name.
 ///
 /// `location` is one of: "sibling", "home", or an absolute custom path.
-/// - "sibling": creates `{repo_root}-{session_id}` next to the repo
-/// - "home": creates `~/.claude-worktrees/{repo_name}/{session_id}`
-/// - custom path: creates `{custom_path}/{repo_name}/{session_id}`
+/// - "sibling": creates `{repo_root}-{branch_name}` next to the repo
+/// - "home": creates `~/.clutch/worktrees/{repo_name}/{branch_name}`
+/// - custom path: creates `{custom_path}/{repo_name}/{branch_name}`
 pub fn create_worktree(
     repo_root: &str,
-    session_id: &str,
+    branch_name: &str,
     location: &str,
-    branch_prefix: &str,
 ) -> Result<String, String> {
     let repo_path = Path::new(repo_root);
     let repo_name = repo_path
@@ -48,7 +47,6 @@ pub fn create_worktree(
         .and_then(|n| n.to_str())
         .unwrap_or("repo");
 
-    let branch_name = format!("{}{}", branch_prefix, session_id);
     // Use branch name as folder name, replacing `/` with `-` for filesystem safety
     let folder_name = branch_name.replace('/', "-");
 
@@ -95,7 +93,7 @@ pub fn create_worktree(
             "worktree",
             "add",
             "-b",
-            &branch_name,
+            branch_name,
             &worktree_path,
         ])
         .current_dir(repo_root)
@@ -114,9 +112,8 @@ pub fn create_worktree(
 /// the original dir on failure so the session can still proceed.
 pub fn setup_worktree_for_session(
     working_dir: &str,
-    session_id: &str,
+    branch_name: &str,
     location: &str,
-    branch_prefix: &str,
 ) -> WorktreeSetupResult {
     let fallback = WorktreeSetupResult {
         effective_dir: working_dir.to_string(),
@@ -129,7 +126,7 @@ pub fn setup_worktree_for_session(
         None => return fallback,
     };
 
-    match create_worktree(&repo_root, session_id, location, branch_prefix) {
+    match create_worktree(&repo_root, branch_name, location) {
         Ok(wt_path) => WorktreeSetupResult {
             effective_dir: wt_path.clone(),
             worktree_path: Some(wt_path),
@@ -149,10 +146,6 @@ pub fn remove_worktree(repo_root: &str, worktree_path: &str) -> WorktreeRemoveRe
     match output {
         Ok(o) if o.status.success() => {
             // Best-effort: extract branch name from worktree path and delete it.
-            // The branch name was set during creation; we try to infer it from
-            // `git worktree list --porcelain` but that's fragile. Instead, we
-            // rely on `git branch -d` which only deletes if fully merged.
-            // The branch cleanup is best-effort — if it fails, that's fine.
             let _ = try_delete_worktree_branch(repo_root, worktree_path);
 
             WorktreeRemoveResult {
@@ -172,6 +165,11 @@ pub fn remove_worktree(repo_root: &str, worktree_path: &str) -> WorktreeRemoveRe
             error: Some(format!("Failed to run git worktree remove: {}", e)),
         },
     }
+}
+
+/// Check if a worktree directory still exists on disk.
+pub fn validate_worktree_path(path: &str) -> bool {
+    Path::new(path).is_dir()
 }
 
 /// Get the current git branch name for a directory.
@@ -197,11 +195,6 @@ pub fn get_branch(dir: &str) -> Option<String> {
 
 /// Best-effort: find and delete the branch associated with a worktree.
 fn try_delete_worktree_branch(repo_root: &str, worktree_path: &str) {
-    // Use `git worktree list --porcelain` to find the branch, but since the
-    // worktree is already removed, we try to infer the branch from the path.
-    // The worktree path ends with the session_id, and the branch is `{prefix}{session_id}`.
-    // Since we don't know the prefix here, we list branches and look for ones
-    // that match the session_id suffix from the path.
     let wt = Path::new(worktree_path);
     let session_id = match wt.file_name().and_then(|n| n.to_str()) {
         Some(name) => name,

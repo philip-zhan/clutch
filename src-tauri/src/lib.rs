@@ -6,10 +6,11 @@ mod pty;
 
 use commands::{
     cleanup_session_worktree, create_session, destroy_session, get_git_branches, restart_session,
-    session_resize, session_write, setup_session_worktree, PtyState, WorktreeRegistry,
+    session_resize, session_write, setup_session_worktree, validate_worktrees, PtyState,
+    WorktreeRegistry,
 };
 use notifications::{poll_session_activity, SessionsDir};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
 #[cfg(target_os = "macos")]
@@ -27,7 +28,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PtyState(Mutex::new(HashMap::new())))
-        .manage(WorktreeRegistry(Mutex::new(HashMap::new())))
+        .manage(WorktreeRegistry(Mutex::new(HashSet::new())))
         .manage(Arc::new(
             SessionsDir::new().expect("Failed to create sessions directory"),
         ))
@@ -39,6 +40,7 @@ pub fn run() {
             session_resize,
             setup_session_worktree,
             cleanup_session_worktree,
+            validate_worktrees,
             poll_session_activity,
             get_git_branches,
         ])
@@ -89,12 +91,11 @@ pub fn run() {
                         let _ = window.set_focus();
                     }
                 }
-                // Clean up all PTYs, session dirs, and worktrees on exit
+                // Clean up all PTYs and session dirs on exit (worktrees persist)
                 RunEvent::Exit => {
                     let pty_state = _app.state::<PtyState>();
                     let sessions_dir = _app.state::<Arc<SessionsDir>>();
-                    let worktree_registry = _app.state::<WorktreeRegistry>();
-                    commands::cleanup_all(&pty_state, &sessions_dir, &worktree_registry);
+                    commands::cleanup_all(&pty_state, &sessions_dir);
                 }
                 _ => {}
             }

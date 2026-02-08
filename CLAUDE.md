@@ -4,8 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Clutch Desktop** is a multi-session terminal UI for Claude Code, built with React + Tauri. Each session runs an independent PTY with xterm.js rendering. Sessions persist across app restarts via `@tauri-apps/plugin-store`.
+**Clutch Desktop** is a multi-session terminal UI for Claude Code, built with React + Tauri. Each session runs an independent PTY with xterm.js rendering. Worktrees persist across app restarts via `@tauri-apps/plugin-store` and drive session restoration on startup.
 
+## Architecture
+
+### Session vs Worktree
+
+- **Session** — ephemeral runtime object (nanoid). Represents a running PTY + terminal UI. Destroyed on app quit. Never persisted.
+- **Worktree** — persistent across restarts (nanoid). Represents a git worktree + branch. Stored in `@tauri-apps/plugin-store`. Cleaned up when a tab is explicitly closed, but NOT when the app quits.
+- On startup, one session is created per persisted worktree. The first session (main branch) has no worktree.
+- Branch names use `unique-names-generator` (adjective-color-animal), decoupled from session IDs.
 
 ## Rules
 

@@ -33,6 +33,7 @@ function App() {
         notificationSound,
         setNotificationSound,
         setActivityState,
+        getPersistedTab,
     } = useSessionStore();
 
     const updater = useUpdater();
@@ -100,10 +101,12 @@ function App() {
                         onRestart={handleRestartSession}
                         onRename={handleRenameSession}
                         onCollapse={() => setSidebarCollapsed(true)}
+                        getPersistedTab={getPersistedTab}
                     />
                 }
                 collapsedSidebar={
                     <CollapsedSidebar
+                        getPersistedTab={getPersistedTab}
                         sessions={sessions}
                         activeSessionId={activeSessionId}
                         position={sidebarPosition as "left" | "right"}

@@ -3,6 +3,7 @@ import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucid
 import { cn } from "@/lib/utils";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
+import type { PersistedTab } from "@/lib/persisted-tabs";
 
 interface SidebarProps {
   sessions: Session[];
@@ -14,6 +15,7 @@ interface SidebarProps {
   onRestart: (sessionId: string) => void;
   onRename: (sessionId: string, name: string) => void;
   onCollapse?: () => void;
+  getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }
 
 function getActivityDot(session: Session): { color: string; animation?: string } {
@@ -43,6 +45,7 @@ export function Sidebar({
   onRestart,
   onRename,
   onCollapse,
+  getPersistedTab,
 }: SidebarProps) {
   const isHorizontal = position === "top" || position === "bottom";
 
@@ -54,6 +57,7 @@ export function Sidebar({
         onSelect={onSelect}
         onNew={onNew}
         onClose={onClose}
+        getPersistedTab={getPersistedTab}
       />
     );
   }
@@ -68,6 +72,7 @@ export function Sidebar({
       onRestart={onRestart}
       onRename={onRename}
       onCollapse={onCollapse}
+      getPersistedTab={getPersistedTab}
     />
   );
 }
@@ -81,6 +86,7 @@ function VerticalSidebar({
   onRestart,
   onRename,
   onCollapse,
+  getPersistedTab,
 }: Omit<SidebarProps, "position">) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -95,7 +101,7 @@ function VerticalSidebar({
 
   const handleDoubleClick = (session: Session) => {
     setEditingId(session.id);
-    setEditValue(session.name || sessionDisplayName(session));
+    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.persistedTabId)));
   };
 
   const commitRename = () => {
@@ -172,7 +178,7 @@ function VerticalSidebar({
                 ) : (
                   <>
                     <div className="text-sm truncate">
-                      {sessionDisplayName(session)}
+                      {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
                     </div>
                     {session.gitBranch && (
                       <div className="flex items-center text-xs text-foreground-subtle truncate" style={{ gap: 3, marginTop: 1 }}>
@@ -238,7 +244,8 @@ function HorizontalSidebar({
   onSelect,
   onNew,
   onClose,
-}: Pick<SidebarProps, "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose">) {
+  getPersistedTab,
+}: Pick<SidebarProps, "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose" | "getPersistedTab">) {
   return (
     <div
       className="flex items-center border-b border-border bg-surface/50 overflow-x-auto"
@@ -268,7 +275,7 @@ function HorizontalSidebar({
               }}
             />
             <span className="text-xs truncate" style={{ maxWidth: 120 }}>
-              {sessionDisplayName(session)}
+              {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
             </span>
             {session.gitBranch && (
               <span className="flex items-center text-foreground-subtle" style={{ gap: 2 }}>
@@ -309,6 +316,7 @@ export function CollapsedSidebar({
   onSelect,
   onNew,
   onExpand,
+  getPersistedTab,
 }: {
   sessions: Session[];
   activeSessionId: string | null;
@@ -316,6 +324,7 @@ export function CollapsedSidebar({
   onSelect: (sessionId: string) => void;
   onNew: () => void;
   onExpand: () => void;
+  getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }) {
   return (
     <div
@@ -353,7 +362,7 @@ export function CollapsedSidebar({
               )}
               style={{ width: 32, height: 32, flexShrink: 0 }}
               onClick={() => onSelect(session.id)}
-              title={sessionDisplayName(session)}
+              title={sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
             >
               <div
                 className="rounded-full"

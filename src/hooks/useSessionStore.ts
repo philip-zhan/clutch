@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
+import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";
 
 interface SessionStoreState {
   sessions: Session[];
+  persistedTabs: PersistedTab[];
   activeSessionId: string | null;
   sidebarPosition: SidebarPosition;
   defaultCommand: string;
@@ -20,6 +22,7 @@ interface SessionStoreState {
 
 const DEFAULT_STATE: SessionStoreState = {
   sessions: [],
+  persistedTabs: [],
   activeSessionId: null,
   sidebarPosition: "left",
   defaultCommand: "claude",
@@ -44,9 +47,13 @@ export function useSessionStore() {
       const store = await Store.load(STORE_FILE);
       storeRef.current = store;
 
-      // Session persistence disabled — always start fresh
+      // Sessions are ephemeral — always start fresh
       const sessions: Session[] = [];
       const activeSessionId = null;
+
+      // Tabs persist across restarts
+      const persistedTabs = (await store.get<PersistedTab[]>("persistedTabs")) ?? [];
+
       const sidebarPosition =
         (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
       const defaultCommand =
@@ -67,7 +74,8 @@ export function useSessionStore() {
       if (mounted) {
         setState({
           sessions,
-          activeSessionId: sessions.length > 0 ? activeSessionId ?? null : null,
+          persistedTabs,
+          activeSessionId,
           sidebarPosition,
           defaultCommand,
           defaultWorkingDir,
@@ -94,7 +102,7 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      // Session persistence disabled — only persist settings
+      await store.set("persistedTabs", state.persistedTabs);
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
       await store.set("defaultWorkingDir", state.defaultWorkingDir);
@@ -184,6 +192,25 @@ export function useSessionStore() {
     }));
   }, []);
 
+  const addPersistedTab = useCallback((tab: PersistedTab) => {
+    setState((prev) => ({
+      ...prev,
+      persistedTabs: [...prev.persistedTabs, tab],
+    }));
+  }, []);
+
+  const removePersistedTab = useCallback((tabId: string) => {
+    setState((prev) => ({
+      ...prev,
+      persistedTabs: prev.persistedTabs.filter((t) => t.id !== tabId),
+    }));
+  }, []);
+
+  const getPersistedTab = useCallback((tabId: string | undefined): PersistedTab | undefined => {
+    if (!tabId) return undefined;
+    return state.persistedTabs.find((t) => t.id === tabId);
+  }, [state.persistedTabs]);
+
   return {
     ...state,
     isLoaded: isLoadedRef.current,
@@ -200,5 +227,8 @@ export function useSessionStore() {
     setBranchPrefix,
     setNotificationSound,
     setActivityState,
+    addPersistedTab,
+    removePersistedTab,
+    getPersistedTab,
   };
 }
