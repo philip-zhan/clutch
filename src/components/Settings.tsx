@@ -10,6 +10,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 import type { SidebarPosition } from "@/lib/sessions";
 import type { UseUpdaterResult } from "@/hooks/useUpdater";
@@ -205,12 +206,12 @@ export function Settings({
                   checked={worktreeEnabled}
                   onCheckedChange={onWorktreeEnabledChange}
                 />
-                <label
-                  className="text-sm text-foreground cursor-pointer"
+                <Label
+                  className="cursor-pointer"
                   onClick={() => onWorktreeEnabledChange(!worktreeEnabled)}
                 >
                   Enable auto worktree creation
-                </label>
+                </Label>
               </div>
 
               {worktreeEnabled && (

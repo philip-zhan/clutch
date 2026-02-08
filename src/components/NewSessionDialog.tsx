@@ -10,6 +10,7 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 
 interface NewSessionDialogProps {
@@ -61,10 +62,10 @@ export function NewSessionDialog({
         <DialogBody>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
-              <label className="text-sm font-medium text-foreground" style={{ display: "block", marginBottom: 8 }}>
+              <Label style={{ display: "block", marginBottom: 8 }}>
                 Session Name
                 <span className="text-foreground-subtle font-normal"> (optional)</span>
-              </label>
+              </Label>
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
                 style={{ padding: "8px 12px", height: 36 }}
@@ -78,9 +79,9 @@ export function NewSessionDialog({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground" style={{ display: "block", marginBottom: 8 }}>
+              <Label style={{ display: "block", marginBottom: 8 }}>
                 Command
-              </label>
+              </Label>
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
                 style={{ padding: "8px 12px", height: 36 }}
