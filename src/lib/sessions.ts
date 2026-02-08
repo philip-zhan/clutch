@@ -51,7 +51,11 @@ export function sessionDisplayName(
 	tab?: PersistedTab,
 ): string {
 	if (session.name) return session.name;
-	const dir = tab?.originalWorkingDir || session.workingDir;
+	const dir =
+		session.gitRepoPath ||
+		tab?.gitRepoPath ||
+		tab?.originalWorkingDir ||
+		session.workingDir;
 	if (dir) {
 		const parts = dir.split("/");
 		return parts[parts.length - 1] || dir;
