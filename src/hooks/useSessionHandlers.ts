@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { generateSessionId } from "../lib/sessions";
+import { generateSessionId, generateBranchName } from "../lib/sessions";
 import type { Session } from "../lib/sessions";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 
@@ -51,15 +51,16 @@ export function useSessionHandlers({
 
             if (worktreeEnabled && workingDir && sessions.length > 0) {
                 try {
+                    const branchName = branchPrefix + generateBranchName();
                     const result = await invoke<{
                         effective_dir: string;
                         worktree_path: string | null;
                         git_repo_path: string | null;
                     }>("setup_session_worktree", {
-                        sessionId,
+                        worktreeId: sessionId,
+                        branchName,
                         workingDir,
                         location: "home",
-                        branchPrefix,
                     });
                     effectiveDir = result.effective_dir;
                     worktreePath = result.worktree_path ?? undefined;
@@ -137,6 +138,7 @@ export function useSessionHandlers({
                     const result = await invoke<{ success: boolean; error: string | null }>(
                         "cleanup_session_worktree",
                         {
+                            worktreeId: sessionId,
                             worktreePath: session.worktreePath,
                             gitRepoPath: session.gitRepoPath,
                         }
