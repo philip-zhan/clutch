@@ -5,7 +5,7 @@ import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId, generateBranchName } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
-import type { PersistedTab } from "./lib/worktrees";
+import type { PersistedTab } from "./lib/persisted-tabs";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";

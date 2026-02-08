@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
-import type { PersistedTab } from "@/lib/worktrees";
+import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";

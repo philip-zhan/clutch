@@ -3,7 +3,7 @@ import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucid
 import { cn } from "@/lib/utils";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
-import type { PersistedTab } from "@/lib/worktrees";
+import type { PersistedTab } from "@/lib/persisted-tabs";
 
 interface SidebarProps {
   sessions: Session[];

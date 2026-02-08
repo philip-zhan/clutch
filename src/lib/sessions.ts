@@ -5,7 +5,7 @@ import {
 	colors,
 	animals,
 } from "unique-names-generator";
-import type { PersistedTab } from "./worktrees";
+import type { PersistedTab } from "./persisted-tabs";
 
 export type SessionStatus = "running" | "exited";
 
