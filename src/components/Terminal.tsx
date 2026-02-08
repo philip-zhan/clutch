@@ -103,6 +103,7 @@ export function Terminal({
     if (!containerRef.current || terminalRef.current) return;
 
     const terminal = new XTerm({
+      allowProposedApi: true,
       cursorBlink: true,
       cursorStyle: "bar",
       fontFamily: "'SF Mono', 'JetBrains Mono', Menlo, Monaco, monospace",
