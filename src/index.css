@@ -117,6 +117,7 @@ button, a, input {
 
 .terminal-wrapper .xterm-viewport {
   overflow-y: scroll !important;
+  background-color: inherit !important;
 }
 
 .terminal-wrapper .xterm-screen {
