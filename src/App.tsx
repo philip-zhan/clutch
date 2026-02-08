@@ -5,7 +5,7 @@ import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
 import { TitleBar } from "./components/TitleBar";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
 import { Settings } from "./components/Settings";
 import { UpdateDialog } from "./components/UpdateDialog";
@@ -23,8 +23,6 @@ function App() {
         defaultCommand,
         defaultWorkingDir,
         worktreeEnabled,
-        worktreeLocation,
-        worktreeCustomPath,
         branchPrefix,
         addSession,
         removeSession,
@@ -34,8 +32,6 @@ function App() {
         setDefaultCommand,
         setDefaultWorkingDir,
         setWorktreeEnabled,
-        setWorktreeLocation,
-        setWorktreeCustomPath,
         setBranchPrefix,
         notificationSound,
         setNotificationSound,
@@ -45,6 +41,7 @@ function App() {
     const updater = useUpdater();
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Terminal panel state (per-session shell panel below main terminal)
     const [mountedPanels, setMountedPanels] = useState<Set<string>>(new Set());
@@ -70,7 +67,6 @@ function App() {
 
             if (worktreeEnabled && workingDir && sessions.length > 0) {
                 try {
-                    const location = worktreeLocation === "custom" ? worktreeCustomPath : worktreeLocation;
                     const result = await invoke<{
                         effective_dir: string;
                         worktree_path: string | null;
@@ -78,7 +74,7 @@ function App() {
                     }>("setup_session_worktree", {
                         sessionId,
                         workingDir,
-                        location,
+                        location: "home",
                         branchPrefix,
                     });
                     effectiveDir = result.effective_dir;
@@ -106,7 +102,7 @@ function App() {
             };
             addSession(session);
         },
-        [addSession, sessions.length, worktreeEnabled, worktreeLocation, worktreeCustomPath, branchPrefix]
+        [addSession, sessions.length, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
@@ -295,6 +291,13 @@ function App() {
             const isMeta = e.metaKey;
             if (!isMeta) return;
 
+            // Cmd+B — Toggle sidebar
+            if (e.key === "b" && !e.shiftKey) {
+                e.preventDefault();
+                setSidebarCollapsed((prev) => !prev);
+                return;
+            }
+
             // Cmd+T — New session
             if (e.key === "t" && !e.shiftKey) {
                 e.preventDefault();
@@ -391,6 +394,7 @@ function App() {
                         onClose={handleCloseSession}
                         onRestart={handleRestartSession}
                         onRename={handleRenameSession}
+                        onCollapse={() => setSidebarCollapsed(true)}
                     />
                 );
 
@@ -508,6 +512,27 @@ function App() {
                 );
 
                 if (isVerticalSidebar) {
+                    if (sidebarCollapsed) {
+                        return (
+                            <div style={{
+                                display: "flex",
+                                flexDirection: sidebarPosition === "right" ? "row-reverse" : "row",
+                                flex: 1,
+                                overflow: "hidden",
+                            }}>
+                                <CollapsedSidebar
+                                    sessions={sessions}
+                                    activeSessionId={activeSessionId}
+                                    position={sidebarPosition as "left" | "right"}
+                                    onSelect={handleSelectSession}
+                                    onNew={handleNewSession}
+                                    onExpand={() => setSidebarCollapsed(false)}
+                                />
+                                {contentElement}
+                            </div>
+                        );
+                    }
+
                     return (
                         <ResizablePanelGroup orientation="horizontal" style={{ flex: 1, overflow: "hidden" }}>
                             {sidebarPosition === "left" && (
@@ -548,10 +573,6 @@ function App() {
                 onDefaultWorkingDirChange={setDefaultWorkingDir}
                 worktreeEnabled={worktreeEnabled}
                 onWorktreeEnabledChange={setWorktreeEnabled}
-                worktreeLocation={worktreeLocation}
-                onWorktreeLocationChange={setWorktreeLocation}
-                worktreeCustomPath={worktreeCustomPath}
-                onWorktreeCustomPathChange={setWorktreeCustomPath}
                 branchPrefix={branchPrefix}
                 onBranchPrefixChange={setBranchPrefix}
                 notificationSound={notificationSound}

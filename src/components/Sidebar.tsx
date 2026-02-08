@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, X, RotateCw, GitBranch } from "lucide-react";
+import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
@@ -13,6 +13,7 @@ interface SidebarProps {
   onClose: (sessionId: string) => void;
   onRestart: (sessionId: string) => void;
   onRename: (sessionId: string, name: string) => void;
+  onCollapse?: () => void;
 }
 
 function getActivityDot(session: Session): { color: string; animation?: string } {
@@ -41,6 +42,7 @@ export function Sidebar({
   onClose,
   onRestart,
   onRename,
+  onCollapse,
 }: SidebarProps) {
   const isHorizontal = position === "top" || position === "bottom";
 
@@ -65,6 +67,7 @@ export function Sidebar({
       onClose={onClose}
       onRestart={onRestart}
       onRename={onRename}
+      onCollapse={onCollapse}
     />
   );
 }
@@ -77,6 +80,7 @@ function VerticalSidebar({
   onClose,
   onRestart,
   onRename,
+  onCollapse,
 }: Omit<SidebarProps, "position">) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -113,6 +117,16 @@ function VerticalSidebar({
         <span className="text-xs font-medium text-foreground-muted uppercase tracking-wider flex-1">
           Sessions
         </span>
+        {onCollapse && (
+          <button
+            className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover transition-colors"
+            style={{ width: 22, height: 22 }}
+            onClick={onCollapse}
+            title="Collapse sidebar (⌘B)"
+          >
+            <ChevronsLeft size={14} />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ padding: 6 }}>
@@ -284,6 +298,87 @@ function HorizontalSidebar({
       >
         <Plus className="h-4 w-4" />
       </button>
+    </div>
+  );
+}
+
+export function CollapsedSidebar({
+  sessions,
+  activeSessionId,
+  position,
+  onSelect,
+  onNew,
+  onExpand,
+}: {
+  sessions: Session[];
+  activeSessionId: string | null;
+  position: "left" | "right";
+  onSelect: (sessionId: string) => void;
+  onNew: () => void;
+  onExpand: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col bg-surface/50",
+        position === "left" ? "border-r border-border" : "border-l border-border"
+      )}
+      style={{ width: 44, height: "100%", flexShrink: 0 }}
+    >
+      <div
+        className="flex items-center justify-center border-b border-border"
+        style={{ height: 41 }}
+      >
+        <button
+          className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover transition-colors"
+          style={{ width: 28, height: 28 }}
+          onClick={onExpand}
+          title="Expand sidebar (⌘B)"
+        >
+          {position === "left" ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto flex flex-col items-center" style={{ padding: 6, gap: 2 }}>
+        {sessions.map((session) => {
+          const dot = getActivityDot(session);
+          return (
+            <button
+              key={session.id}
+              className={cn(
+                "flex items-center justify-center rounded-lg cursor-pointer transition-colors",
+                session.id === activeSessionId
+                  ? "bg-surface-elevated"
+                  : "hover:bg-surface-elevated/50"
+              )}
+              style={{ width: 32, height: 32, flexShrink: 0 }}
+              onClick={() => onSelect(session.id)}
+              title={sessionDisplayName(session)}
+            >
+              <div
+                className="rounded-full"
+                style={{
+                  width: 7,
+                  height: 7,
+                  backgroundColor: dot.color,
+                  ...(dot.animation ? { animation: dot.animation } : {}),
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-border flex justify-center" style={{ padding: 6 }}>
+        <button
+          className="flex items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
+          style={{ width: 32, height: 32 }}
+          onClick={onNew}
+          title="New Session (⌘T)"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
