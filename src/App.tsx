@@ -98,6 +98,7 @@ function App() {
                     notificationSound={notificationSound}
                     onNotificationSoundChange={setNotificationSound}
                     updater={updater}
+                    activeSessionId={activeSessionId}
                 />
             </main>
         );

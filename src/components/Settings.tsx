@@ -23,6 +23,7 @@ interface SettingsProps {
   notificationSound: NotificationSound;
   onNotificationSoundChange: (sound: NotificationSound) => void;
   updater: UseUpdaterResult;
+  activeSessionId?: string | null;
 }
 
 export function Settings({
@@ -40,6 +41,7 @@ export function Settings({
   notificationSound,
   onNotificationSoundChange,
   updater,
+  activeSessionId,
 }: SettingsProps) {
   const [localCommand, setLocalCommand] = useState(defaultCommand);
   const [localBranchPrefix, setLocalBranchPrefix] = useState(branchPrefix);
@@ -242,6 +244,17 @@ export function Settings({
                 <span className="text-xs text-foreground-subtle">
                   v{__APP_VERSION__}
                 </span>
+              </div>
+            </SettingsSection>
+
+            <SettingsSection
+              title="Developer"
+            >
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <span className="text-xs text-foreground-subtle">Session ID:</span>
+                <code className="text-xs font-mono text-foreground-muted select-all">
+                  {activeSessionId ?? "—"}
+                </code>
               </div>
             </SettingsSection>
           </div>
