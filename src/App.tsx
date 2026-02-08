@@ -409,7 +409,7 @@ function App() {
                 );
 
                 const contentElement = (
-                    <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+                    <div style={{ display: "flex", flex: 1, height: "100%", width: "100%", overflow: "hidden", position: "relative" }}>
                         {sessions.map((session) => {
                             const isActive = session.id === activeSessionId;
                             const isPanelMounted = mountedPanels.has(session.id);
@@ -421,6 +421,7 @@ function App() {
                                         display: isActive ? "flex" : "none",
                                         flexDirection: "column",
                                         flex: 1,
+                                        height: "100%",
                                         overflow: "hidden",
                                     }}
                                 >
