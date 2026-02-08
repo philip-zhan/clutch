@@ -5,7 +5,7 @@ import {
 	colors,
 	animals,
 } from "unique-names-generator";
-import type { Worktree } from "./worktrees";
+import type { PersistedTab } from "./worktrees";
 
 export type SessionStatus = "running" | "exited";
 
@@ -26,8 +26,7 @@ export interface Session {
 	command?: string;
 	status: SessionStatus;
 	createdAt: number;
-	worktreeId?: string; // FK → Worktree.id (undefined for main-branch session)
-	persistedTabId?: string; // FK → PersistedTab.id (for non-worktree tabs)
+	persistedTabId?: string; // FK → PersistedTab.id
 	activityState?: ClaudeActivityState;
 	gitBranch?: string;
 }
@@ -46,10 +45,10 @@ export function generateBranchName(): string {
 
 export function sessionDisplayName(
 	session: Session,
-	worktree?: Worktree,
+	tab?: PersistedTab,
 ): string {
 	if (session.name) return session.name;
-	const dir = worktree?.originalWorkingDir || session.workingDir;
+	const dir = tab?.originalWorkingDir || session.workingDir;
 	if (dir) {
 		const parts = dir.split("/");
 		return parts[parts.length - 1] || dir;

@@ -3,7 +3,7 @@ import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucid
 import { cn } from "@/lib/utils";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
-import type { Worktree } from "@/lib/worktrees";
+import type { PersistedTab } from "@/lib/worktrees";
 
 interface SidebarProps {
   sessions: Session[];
@@ -15,7 +15,7 @@ interface SidebarProps {
   onRestart: (sessionId: string) => void;
   onRename: (sessionId: string, name: string) => void;
   onCollapse?: () => void;
-  getWorktree: (worktreeId: string | undefined) => Worktree | undefined;
+  getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }
 
 function getActivityDot(session: Session): { color: string; animation?: string } {
@@ -45,7 +45,7 @@ export function Sidebar({
   onRestart,
   onRename,
   onCollapse,
-  getWorktree,
+  getPersistedTab,
 }: SidebarProps) {
   const isHorizontal = position === "top" || position === "bottom";
 
@@ -57,7 +57,7 @@ export function Sidebar({
         onSelect={onSelect}
         onNew={onNew}
         onClose={onClose}
-        getWorktree={getWorktree}
+        getPersistedTab={getPersistedTab}
       />
     );
   }
@@ -72,7 +72,7 @@ export function Sidebar({
       onRestart={onRestart}
       onRename={onRename}
       onCollapse={onCollapse}
-      getWorktree={getWorktree}
+      getPersistedTab={getPersistedTab}
     />
   );
 }
@@ -86,7 +86,7 @@ function VerticalSidebar({
   onRestart,
   onRename,
   onCollapse,
-  getWorktree,
+  getPersistedTab,
 }: Omit<SidebarProps, "position">) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -101,7 +101,7 @@ function VerticalSidebar({
 
   const handleDoubleClick = (session: Session) => {
     setEditingId(session.id);
-    setEditValue(session.name || sessionDisplayName(session, getWorktree(session.worktreeId)));
+    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.persistedTabId)));
   };
 
   const commitRename = () => {
@@ -178,7 +178,7 @@ function VerticalSidebar({
                 ) : (
                   <>
                     <div className="text-sm truncate">
-                      {sessionDisplayName(session, getWorktree(session.worktreeId))}
+                      {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
                     </div>
                     {session.gitBranch && (
                       <div className="flex items-center text-xs text-foreground-subtle truncate" style={{ gap: 3, marginTop: 1 }}>
@@ -244,8 +244,8 @@ function HorizontalSidebar({
   onSelect,
   onNew,
   onClose,
-  getWorktree,
-}: Pick<SidebarProps, "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose" | "getWorktree">) {
+  getPersistedTab,
+}: Pick<SidebarProps, "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose" | "getPersistedTab">) {
   return (
     <div
       className="flex items-center border-b border-border bg-surface/50 overflow-x-auto"
@@ -275,7 +275,7 @@ function HorizontalSidebar({
               }}
             />
             <span className="text-xs truncate" style={{ maxWidth: 120 }}>
-              {sessionDisplayName(session, getWorktree(session.worktreeId))}
+              {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
             </span>
             {session.gitBranch && (
               <span className="flex items-center text-foreground-subtle" style={{ gap: 2 }}>
@@ -316,7 +316,7 @@ export function CollapsedSidebar({
   onSelect,
   onNew,
   onExpand,
-  getWorktree,
+  getPersistedTab,
 }: {
   sessions: Session[];
   activeSessionId: string | null;
@@ -324,7 +324,7 @@ export function CollapsedSidebar({
   onSelect: (sessionId: string) => void;
   onNew: () => void;
   onExpand: () => void;
-  getWorktree: (worktreeId: string | undefined) => Worktree | undefined;
+  getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }) {
   return (
     <div
@@ -362,7 +362,7 @@ export function CollapsedSidebar({
               )}
               style={{ width: 32, height: 32, flexShrink: 0 }}
               onClick={() => onSelect(session.id)}
-              title={sessionDisplayName(session, getWorktree(session.worktreeId))}
+              title={sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
             >
               <div
                 className="rounded-full"

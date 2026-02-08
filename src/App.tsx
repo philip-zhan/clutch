@@ -5,7 +5,7 @@ import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
 import { generateSessionId, generateBranchName } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
-import type { Worktree, PersistedTab } from "./lib/worktrees";
+import type { PersistedTab } from "./lib/worktrees";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
@@ -20,7 +20,7 @@ import { useState } from "react";
 function App() {
     const {
         sessions,
-        worktrees,
+        persistedTabs,
         activeSessionId,
         sidebarPosition,
         defaultCommand,
@@ -40,12 +40,9 @@ function App() {
         notificationSound,
         setNotificationSound,
         setActivityState,
-        addWorktree,
-        removeWorktree,
-        getWorktree,
-        persistedTabs,
         addPersistedTab,
         removePersistedTab,
+        getPersistedTab,
     } = useSessionStore();
 
     const updater = useUpdater();
@@ -71,54 +68,44 @@ function App() {
         async (name: string, workingDir: string, command: string) => {
             const sessionId = generateSessionId();
             let effectiveDir = workingDir;
-            let worktreeId: string | undefined;
-            let persistedTabId: string | undefined;
+            const tabId = nanoid();
+            let tab: PersistedTab = {
+                id: tabId,
+                workingDir,
+                command: command || undefined,
+                createdAt: Date.now(),
+            };
 
             if (worktreeEnabled && workingDir && sessions.length > 0) {
                 try {
-                    const wtId = nanoid();
                     const branchName = `${branchPrefix}${generateBranchName()}`;
                     const result = await invoke<{
                         effective_dir: string;
                         worktree_path: string | null;
                         git_repo_path: string | null;
                     }>("setup_session_worktree", {
-                        worktreeId: wtId,
+                        worktreeId: tabId,
                         branchName,
                         workingDir,
                         location: "home",
                     });
                     effectiveDir = result.effective_dir;
                     if (result.worktree_path && result.git_repo_path) {
-                        const worktree: Worktree = {
-                            id: wtId,
+                        tab = {
+                            ...tab,
+                            workingDir: effectiveDir,
                             branchName,
                             worktreePath: result.worktree_path,
                             gitRepoPath: result.git_repo_path,
                             originalWorkingDir: workingDir,
-                            command: command || undefined,
-                            createdAt: Date.now(),
                         };
-                        addWorktree(worktree);
-                        worktreeId = wtId;
                     }
                 } catch {
                     // Fallback to original dir
                 }
             }
 
-            // Persist non-worktree tabs so they survive restarts
-            if (!worktreeId) {
-                const tabId = nanoid();
-                const tab: PersistedTab = {
-                    id: tabId,
-                    workingDir: effectiveDir,
-                    command: command || undefined,
-                    createdAt: Date.now(),
-                };
-                addPersistedTab(tab);
-                persistedTabId = tabId;
-            }
+            addPersistedTab(tab);
 
             const session: Session = {
                 id: sessionId,
@@ -127,30 +114,36 @@ function App() {
                 command: command || undefined,
                 status: "running",
                 createdAt: Date.now(),
-                worktreeId,
-                persistedTabId,
+                persistedTabId: tabId,
                 activityState: "idling",
             };
             addSession(session);
         },
-        [addSession, addWorktree, addPersistedTab, sessions.length, worktreeEnabled, branchPrefix]
+        [addSession, addPersistedTab, sessions.length, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
         handleCreateSession("", defaultWorkingDir, defaultCommand);
     }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
 
-    // Startup: restore sessions from persisted tabs + worktrees
+    // Startup: restore sessions from persisted tabs
     const hasRestoredRef = useRef(false);
     useEffect(() => {
         if (!isLoaded || hasRestoredRef.current) return;
         hasRestoredRef.current = true;
 
         const restore = async () => {
-            let hasAnyTab = false;
+            if (persistedTabs.length === 0) {
+                handleNewSession();
+                return;
+            }
 
-            // Restore non-worktree tabs (e.g. main-branch tab)
-            for (const tab of persistedTabs) {
+            // Split into worktree and plain tabs
+            const worktreeTabs = persistedTabs.filter((t) => t.worktreePath);
+            const plainTabs = persistedTabs.filter((t) => !t.worktreePath);
+
+            // Restore plain tabs immediately
+            for (const tab of plainTabs) {
                 const session: Session = {
                     id: generateSessionId(),
                     name: "",
@@ -162,12 +155,11 @@ function App() {
                     activityState: "idling",
                 };
                 addSession(session);
-                hasAnyTab = true;
             }
 
             // Validate and restore worktree tabs
-            if (worktrees.length > 0) {
-                const paths = worktrees.map((wt) => wt.worktreePath);
+            if (worktreeTabs.length > 0) {
+                const paths = worktreeTabs.map((t) => t.worktreePath!);
                 let valid: boolean[];
                 try {
                     valid = await invoke<boolean[]>("validate_worktrees", { worktreePaths: paths });
@@ -175,35 +167,30 @@ function App() {
                     valid = paths.map(() => true);
                 }
 
-                for (let i = 0; i < worktrees.length; i++) {
+                for (let i = 0; i < worktreeTabs.length; i++) {
+                    const tab = worktreeTabs[i];
                     if (valid[i]) {
-                        const wt = worktrees[i];
                         const session: Session = {
                             id: generateSessionId(),
                             name: "",
-                            workingDir: wt.worktreePath,
-                            command: wt.command,
+                            workingDir: tab.worktreePath!,
+                            command: tab.command,
                             status: "running",
                             createdAt: Date.now(),
-                            worktreeId: wt.id,
+                            persistedTabId: tab.id,
                             activityState: "idling",
                         };
                         addSession(session);
-                        hasAnyTab = true;
                     } else {
-                        removeWorktree(worktrees[i].id);
+                        removePersistedTab(tab.id);
                     }
                 }
             }
 
-            // If nothing was restored, create a fresh main-branch session
-            if (!hasAnyTab) {
-                handleNewSession();
-            }
         };
 
         restore();
-    }, [isLoaded, worktrees, persistedTabs, handleNewSession, addSession, removeWorktree]);
+    }, [isLoaded, persistedTabs, handleNewSession, addSession, removePersistedTab]);
 
     const handleCloseSession = useCallback(
         async (sessionId: string) => {
@@ -234,44 +221,41 @@ function App() {
                 // PTY may already be gone
             }
 
-            // Clean up worktree if one was linked
-            if (session?.worktreeId) {
-                const worktree = getWorktree(session.worktreeId);
-                if (worktree) {
+            // Clean up persisted tab (and worktree if applicable)
+            if (session?.persistedTabId) {
+                const tab = getPersistedTab(session.persistedTabId);
+                if (tab?.worktreePath && tab?.gitRepoPath) {
                     try {
                         const result = await invoke<{ success: boolean; error: string | null }>(
                             "cleanup_session_worktree",
                             {
-                                worktreeId: worktree.id,
-                                worktreePath: worktree.worktreePath,
-                                gitRepoPath: worktree.gitRepoPath,
+                                worktreeId: tab.id,
+                                worktreePath: tab.worktreePath,
+                                gitRepoPath: tab.gitRepoPath,
                             }
                         );
                         if (result.success) {
-                            removeWorktree(worktree.id);
+                            removePersistedTab(tab.id);
                         } else if (result.error) {
                             const { message } = await import("@tauri-apps/plugin-dialog");
                             await message(
-                                `Could not remove worktree:\n${result.error}\n\nThe worktree has been kept at:\n${worktree.worktreePath}`,
+                                `Could not remove worktree:\n${result.error}\n\nThe worktree has been kept at:\n${tab.worktreePath}`,
                                 { title: "Worktree Cleanup", kind: "warning" }
                             );
-                            // Worktree kept — will restore on next launch
+                            // Worktree kept — tab stays persisted for next launch
                         }
                     } catch {
-                        // Best effort — worktree kept for next launch
+                        // Best effort — tab stays persisted for next launch
                     }
+                } else {
+                    removePersistedTab(session.persistedTabId);
                 }
-            }
-
-            // Remove persisted tab record for non-worktree sessions
-            if (session?.persistedTabId) {
-                removePersistedTab(session.persistedTabId);
             }
 
             mountedSessionsRef.current.delete(sessionId);
             removeSession(sessionId);
         },
-        [sessions, removeSession, mountedPanels, getWorktree, removeWorktree, removePersistedTab]
+        [sessions, removeSession, mountedPanels, getPersistedTab, removePersistedTab]
     );
 
     const handleRestartSession = useCallback(
@@ -279,15 +263,15 @@ function App() {
             const session = sessions.find((s) => s.id === sessionId);
             if (!session) return;
 
-            const worktree = getWorktree(session.worktreeId);
-            const restartDir = worktree?.originalWorkingDir ?? session.workingDir;
+            const tab = getPersistedTab(session.persistedTabId);
+            const restartDir = tab?.originalWorkingDir ?? session.workingDir;
 
             // Remove old session (cleans up worktree) and create a new one
             handleCloseSession(sessionId).then(() => {
                 handleCreateSession(session.name, restartDir, session.command ?? "");
             });
         },
-        [sessions, handleCloseSession, handleCreateSession, getWorktree]
+        [sessions, handleCloseSession, handleCreateSession, getPersistedTab]
     );
 
     const handleRenameSession = useCallback(
@@ -504,7 +488,7 @@ function App() {
                         onRestart={handleRestartSession}
                         onRename={handleRenameSession}
                         onCollapse={() => setSidebarCollapsed(true)}
-                        getWorktree={getWorktree}
+                        getPersistedTab={getPersistedTab}
                     />
                 );
 
@@ -643,7 +627,7 @@ function App() {
                                     onSelect={handleSelectSession}
                                     onNew={handleNewSession}
                                     onExpand={() => setSidebarCollapsed(false)}
-                                    getWorktree={getWorktree}
+                                    getPersistedTab={getPersistedTab}
                                 />
                                 {contentElement}
                             </div>

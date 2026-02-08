@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
-import type { Worktree, PersistedTab } from "@/lib/worktrees";
+import type { PersistedTab } from "@/lib/worktrees";
 import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";
 
 interface SessionStoreState {
   sessions: Session[];
-  worktrees: Worktree[];
   persistedTabs: PersistedTab[];
   activeSessionId: string | null;
   sidebarPosition: SidebarPosition;
@@ -23,7 +22,6 @@ interface SessionStoreState {
 
 const DEFAULT_STATE: SessionStoreState = {
   sessions: [],
-  worktrees: [],
   persistedTabs: [],
   activeSessionId: null,
   sidebarPosition: "left",
@@ -53,8 +51,7 @@ export function useSessionStore() {
       const sessions: Session[] = [];
       const activeSessionId = null;
 
-      // Worktrees and plain tabs persist across restarts
-      const worktrees = (await store.get<Worktree[]>("worktrees")) ?? [];
+      // Tabs persist across restarts
       const persistedTabs = (await store.get<PersistedTab[]>("persistedTabs")) ?? [];
 
       const sidebarPosition =
@@ -77,7 +74,6 @@ export function useSessionStore() {
       if (mounted) {
         setState({
           sessions,
-          worktrees,
           persistedTabs,
           activeSessionId,
           sidebarPosition,
@@ -106,10 +102,7 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      // Worktrees and plain tabs persist across restarts
-      await store.set("worktrees", state.worktrees);
       await store.set("persistedTabs", state.persistedTabs);
-      // Settings persist
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
       await store.set("defaultWorkingDir", state.defaultWorkingDir);
@@ -199,25 +192,6 @@ export function useSessionStore() {
     }));
   }, []);
 
-  const addWorktree = useCallback((worktree: Worktree) => {
-    setState((prev) => ({
-      ...prev,
-      worktrees: [...prev.worktrees, worktree],
-    }));
-  }, []);
-
-  const removeWorktree = useCallback((worktreeId: string) => {
-    setState((prev) => ({
-      ...prev,
-      worktrees: prev.worktrees.filter((w) => w.id !== worktreeId),
-    }));
-  }, []);
-
-  const getWorktree = useCallback((worktreeId: string | undefined): Worktree | undefined => {
-    if (!worktreeId) return undefined;
-    return state.worktrees.find((w) => w.id === worktreeId);
-  }, [state.worktrees]);
-
   const addPersistedTab = useCallback((tab: PersistedTab) => {
     setState((prev) => ({
       ...prev,
@@ -231,6 +205,11 @@ export function useSessionStore() {
       persistedTabs: prev.persistedTabs.filter((t) => t.id !== tabId),
     }));
   }, []);
+
+  const getPersistedTab = useCallback((tabId: string | undefined): PersistedTab | undefined => {
+    if (!tabId) return undefined;
+    return state.persistedTabs.find((t) => t.id === tabId);
+  }, [state.persistedTabs]);
 
   return {
     ...state,
@@ -248,10 +227,8 @@ export function useSessionStore() {
     setBranchPrefix,
     setNotificationSound,
     setActivityState,
-    addWorktree,
-    removeWorktree,
-    getWorktree,
     addPersistedTab,
     removePersistedTab,
+    getPersistedTab,
   };
 }
