@@ -406,7 +406,7 @@ function App() {
                                 }}
                             >
                                 <ResizablePanelGroup orientation="vertical">
-                                    <ResizablePanel minSize={20}>
+                                    <ResizablePanel minSize="100px">
                                         <Terminal
                                             sessionId={session.id}
                                             workingDir={session.workingDir}
@@ -429,7 +429,7 @@ function App() {
                                                 }}
                                                 collapsible
                                                 defaultSize={30}
-                                                minSize={10}
+                                                minSize="100px"
                                                 onResize={(panelSize) => {
                                                     const isCollapsed = panelSize.asPercentage === 0;
                                                     setVisiblePanels((prev) => {
