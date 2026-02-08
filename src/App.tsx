@@ -450,6 +450,7 @@ function App() {
                                                     collapsible
                                                     defaultSize={300}
                                                     minSize={100}
+                                                    style={{ backgroundColor: "#0c0c0e" }}
                                                     onResize={(panelSize) => {
                                                         const isCollapsed = panelSize.asPercentage === 0;
                                                         setVisiblePanels((prev) => {
@@ -468,12 +469,15 @@ function App() {
                                                         });
                                                     }}
                                                 >
-                                                    <Terminal
-                                                        sessionId={`${session.id}_panel`}
-                                                        workingDir={session.workingDir}
-                                                        isActive={isActive && visiblePanels.has(session.id)}
-                                                        backgroundColor="#111114"
-                                                    />
+                                                    <div style={{ padding: "8px 0 0 8px", height: "100%", backgroundColor: "#0c0c0e" }}>
+                                                        <Terminal
+                                                            sessionId={`${session.id}_panel`}
+                                                            workingDir={session.workingDir}
+                                                            isActive={isActive && visiblePanels.has(session.id)}
+                                                            backgroundColor="#0c0c0e"
+                                                            showGradient={false}
+                                                        />
+                                                    </div>
                                                 </ResizablePanel>
                                             </>
                                         )}

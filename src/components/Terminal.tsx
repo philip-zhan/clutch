@@ -15,6 +15,7 @@ export interface TerminalProps {
   isActive: boolean;
   onStatusChange?: (status: "running" | "exited") => void;
   backgroundColor?: string;
+  showGradient?: boolean;
 }
 
 export function Terminal({
@@ -24,6 +25,7 @@ export function Terminal({
   isActive,
   onStatusChange,
   backgroundColor = "#000000",
+  showGradient = true,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
@@ -207,10 +209,10 @@ export function Terminal({
   );
 
   return (
-    <div style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%", backgroundColor }}>
       <div
         ref={containerRef}
-        className="terminal-wrapper h-full w-full flex-1"
+        className={`terminal-wrapper h-full w-full flex-1${showGradient ? "" : " no-gradient"}`}
         style={{ backgroundColor }}
       />
       {isSearchOpen && searchAddonRef.current && (

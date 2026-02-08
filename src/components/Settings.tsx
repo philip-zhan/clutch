@@ -245,7 +245,7 @@ export function Settings({
                     spellCheck={false}
                   />
                   <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                    Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix}ses_abc123</code>
+                    Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix}brave-golden-falcon</code>
                   </p>
                 </div>
               )}

@@ -107,6 +107,10 @@ button, a, input {
   opacity: 0.6;
 }
 
+.terminal-wrapper.no-gradient::before {
+  display: none;
+}
+
 .terminal-wrapper .xterm {
   height: 100%;
 }
