@@ -24,6 +24,7 @@ function App() {
         defaultWorkingDir,
         worktreeEnabled,
         branchPrefix,
+        isLoaded,
         addSession,
         removeSession,
         updateSession,
@@ -108,6 +109,15 @@ function App() {
     const handleNewSession = useCallback(() => {
         handleCreateSession("", defaultWorkingDir, defaultCommand);
     }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
+
+    // Auto-create a session on startup
+    const hasAutoCreatedRef = useRef(false);
+    useEffect(() => {
+        if (isLoaded && sessions.length === 0 && !hasAutoCreatedRef.current) {
+            hasAutoCreatedRef.current = true;
+            handleNewSession();
+        }
+    }, [isLoaded, sessions.length, handleNewSession]);
 
     const handleCloseSession = useCallback(
         async (sessionId: string) => {
