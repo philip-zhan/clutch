@@ -76,8 +76,33 @@ function App() {
         onCloseSession: handleCloseSession,
         onTogglePanel: handleTogglePanel,
         onToggleSidebar: useCallback(() => setSidebarCollapsed((prev) => !prev), []),
-        onOpenSettings: useCallback(() => setIsSettingsOpen(true), []),
+        onToggleSettings: useCallback(() => setIsSettingsOpen((prev) => !prev), []),
+        isSettingsOpen,
     });
+
+    if (isSettingsOpen) {
+        return (
+            <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+                <Settings
+                    onBack={() => setIsSettingsOpen(false)}
+                    sidebarPosition={sidebarPosition}
+                    onSidebarPositionChange={setSidebarPosition}
+                    defaultCommand={defaultCommand}
+                    onDefaultCommandChange={setDefaultCommand}
+                    defaultWorkingDir={defaultWorkingDir}
+                    onDefaultWorkingDirChange={setDefaultWorkingDir}
+                    worktreeEnabled={worktreeEnabled}
+                    onWorktreeEnabledChange={setWorktreeEnabled}
+                    branchPrefix={branchPrefix}
+                    onBranchPrefixChange={setBranchPrefix}
+                    notificationSound={notificationSound}
+                    onNotificationSoundChange={setNotificationSound}
+                    updater={updater}
+                    activeSessionId={activeSessionId}
+                />
+            </main>
+        );
+    }
 
     return (
         <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
@@ -127,24 +152,6 @@ function App() {
                     onNewSession={handleNewSession}
                 />
             </AppLayout>
-
-            <Settings
-                open={isSettingsOpen}
-                onOpenChange={setIsSettingsOpen}
-                sidebarPosition={sidebarPosition}
-                onSidebarPositionChange={setSidebarPosition}
-                defaultCommand={defaultCommand}
-                onDefaultCommandChange={setDefaultCommand}
-                defaultWorkingDir={defaultWorkingDir}
-                onDefaultWorkingDirChange={setDefaultWorkingDir}
-                worktreeEnabled={worktreeEnabled}
-                onWorktreeEnabledChange={setWorktreeEnabled}
-                branchPrefix={branchPrefix}
-                onBranchPrefixChange={setBranchPrefix}
-                notificationSound={notificationSound}
-                onNotificationSoundChange={setNotificationSound}
-                updater={updater}
-            />
 
             <UpdateDialog
                 state={updater}

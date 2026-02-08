@@ -8,9 +8,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-b from-primary to-primary-hover text-primary-foreground shadow-sm hover:from-primary-hover hover:to-primary-muted active:scale-[0.98]",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover active:scale-[0.98]",
         destructive:
-          "bg-gradient-to-b from-recording to-recording-hover text-white shadow-sm hover:shadow-md active:scale-[0.98]",
+          "bg-recording text-white shadow-sm hover:bg-recording-hover hover:shadow-md active:scale-[0.98]",
         outline:
           "border border-border bg-transparent text-foreground-muted hover:bg-surface-elevated hover:text-foreground hover:border-border-focus",
         secondary:

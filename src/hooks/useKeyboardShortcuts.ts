@@ -9,7 +9,8 @@ interface UseKeyboardShortcutsOptions {
     onCloseSession: (sessionId: string) => void;
     onTogglePanel: () => void;
     onToggleSidebar: () => void;
-    onOpenSettings: () => void;
+    onToggleSettings: () => void;
+    isSettingsOpen: boolean;
 }
 
 export function useKeyboardShortcuts({
@@ -20,10 +21,18 @@ export function useKeyboardShortcuts({
     onCloseSession,
     onTogglePanel,
     onToggleSidebar,
-    onOpenSettings,
+    onToggleSettings,
+    isSettingsOpen,
 }: UseKeyboardShortcutsOptions) {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Escape closes settings
+            if (e.key === "Escape" && isSettingsOpen) {
+                e.preventDefault();
+                onToggleSettings();
+                return;
+            }
+
             const isMeta = e.metaKey;
             if (!isMeta) return;
 
@@ -57,10 +66,10 @@ export function useKeyboardShortcuts({
                 return;
             }
 
-            // Cmd+, — Settings
+            // Cmd+, — Toggle settings
             if (e.key === ",") {
                 e.preventDefault();
-                onOpenSettings();
+                onToggleSettings();
                 return;
             }
 
@@ -99,5 +108,5 @@ export function useKeyboardShortcuts({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [sessions, activeSessionId, onSelectSession, onCloseSession, onNewSession, onTogglePanel, onToggleSidebar, onOpenSettings]);
+    }, [sessions, activeSessionId, onSelectSession, onCloseSession, onNewSession, onTogglePanel, onToggleSidebar, onToggleSettings, isSettingsOpen]);
 }

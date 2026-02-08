@@ -157,8 +157,8 @@ function VerticalSidebar({
               <div
                 className="rounded-full flex-shrink-0"
                 style={{
-                  width: 7,
-                  height: 7,
+                  width: 9,
+                  height: 9,
                   marginRight: 10,
                   backgroundColor: dot.color,
                   ...(dot.animation ? { animation: dot.animation } : {}),
@@ -184,7 +184,15 @@ function VerticalSidebar({
                       {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
                     </div>
                     {session.gitBranch && (
-                      <div className="flex items-center text-xs text-foreground-subtle truncate" style={{ gap: 3, marginTop: 1 }}>
+                      <div
+                        className="flex items-center text-xs truncate"
+                        style={{
+                          gap: 4,
+                          marginTop: 2,
+                          color: "#60a5fa",
+                          maxWidth: "100%",
+                        }}
+                      >
                         <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
                         <span className="truncate">{session.gitBranch}</span>
                       </div>
@@ -276,8 +284,8 @@ function HorizontalSidebar({
             <div
               className="rounded-full flex-shrink-0"
               style={{
-                width: 6,
-                height: 6,
+                width: 8,
+                height: 8,
                 backgroundColor: dot.color,
                 ...(dot.animation ? { animation: dot.animation } : {}),
               }}
@@ -286,9 +294,15 @@ function HorizontalSidebar({
               {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
             </span>
             {session.gitBranch && (
-              <span className="flex items-center text-foreground-subtle" style={{ gap: 2 }}>
-                <GitBranch style={{ width: 10, height: 10 }} />
-                <span className="text-xs truncate" style={{ maxWidth: 80 }}>{session.gitBranch}</span>
+              <span
+                className="flex items-center text-xs"
+                style={{
+                  gap: 3,
+                  color: "#60a5fa",
+                }}
+              >
+                <GitBranch style={{ width: 10, height: 10, flexShrink: 0 }} />
+                <span className="truncate" style={{ maxWidth: 80 }}>{session.gitBranch}</span>
               </span>
             )}
             <Button
@@ -383,8 +397,8 @@ export function CollapsedSidebar({
               <div
                 className="rounded-full"
                 style={{
-                  width: 7,
-                  height: 7,
+                  width: 9,
+                  height: 9,
                   backgroundColor: dot.color,
                   ...(dot.animation ? { animation: dot.animation } : {}),
                 }}
