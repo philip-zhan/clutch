@@ -173,6 +173,27 @@ pub fn remove_worktree(repo_root: &str, worktree_path: &str) -> WorktreeRemoveRe
     }
 }
 
+/// Get the current git branch name for a directory.
+/// Returns the branch name, or None if not in a git repo.
+pub fn get_branch(dir: &str) -> Option<String> {
+    let output = Command::new("git")
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
+        .current_dir(dir)
+        .output()
+        .ok()?;
+
+    if output.status.success() {
+        let branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if branch.is_empty() {
+            None
+        } else {
+            Some(branch)
+        }
+    } else {
+        None
+    }
+}
+
 /// Best-effort: find and delete the branch associated with a worktree.
 fn try_delete_worktree_branch(repo_root: &str, worktree_path: &str) {
     // Use `git worktree list --porcelain` to find the branch, but since the

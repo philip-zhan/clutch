@@ -17,6 +17,7 @@ export interface Session {
   gitRepoPath?: string;
   originalWorkingDir?: string;
   activityState?: ClaudeActivityState;
+  gitBranch?: string;
 }
 
 export function generateSessionId(): string {

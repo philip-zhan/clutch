@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, X, RotateCw } from "lucide-react";
+import { Plus, X, RotateCw, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
@@ -160,9 +160,10 @@ function VerticalSidebar({
                     <div className="text-sm truncate">
                       {sessionDisplayName(session)}
                     </div>
-                    {session.workingDir && session.name && (
-                      <div className="text-xs text-foreground-subtle truncate">
-                        {session.workingDir.split("/").pop()}
+                    {session.gitBranch && (
+                      <div className="flex items-center text-xs text-foreground-subtle truncate" style={{ gap: 3, marginTop: 1 }}>
+                        <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
+                        <span className="truncate">{session.gitBranch}</span>
                       </div>
                     )}
                   </>
@@ -255,6 +256,12 @@ function HorizontalSidebar({
             <span className="text-xs truncate" style={{ maxWidth: 120 }}>
               {sessionDisplayName(session)}
             </span>
+            {session.gitBranch && (
+              <span className="flex items-center text-foreground-subtle" style={{ gap: 2 }}>
+                <GitBranch style={{ width: 10, height: 10 }} />
+                <span className="text-xs truncate" style={{ maxWidth: 80 }}>{session.gitBranch}</span>
+              </span>
+            )}
             <button
               className="flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-foreground-subtle hover:text-foreground transition-opacity"
               style={{ width: 16, height: 16 }}
