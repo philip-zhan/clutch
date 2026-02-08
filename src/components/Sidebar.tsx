@@ -188,12 +188,8 @@ function VerticalSidebar({
                         className="flex items-center text-xs truncate"
                         style={{
                           gap: 4,
-                          marginTop: 3,
-                          padding: "1px 6px",
-                          borderRadius: 4,
-                          backgroundColor: "rgba(59, 130, 246, 0.1)",
+                          marginTop: 2,
                           color: "#60a5fa",
-                          width: "fit-content",
                           maxWidth: "100%",
                         }}
                       >
@@ -302,9 +298,6 @@ function HorizontalSidebar({
                 className="flex items-center text-xs"
                 style={{
                   gap: 3,
-                  padding: "0 5px",
-                  borderRadius: 4,
-                  backgroundColor: "rgba(59, 130, 246, 0.1)",
                   color: "#60a5fa",
                 }}
               >
