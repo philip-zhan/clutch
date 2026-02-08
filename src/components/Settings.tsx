@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCw, Volume2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogClose,
-} from "./ui/dialog";
+import { ArrowLeft, RefreshCw, Volume2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
@@ -17,8 +9,7 @@ import type { UseUpdaterResult } from "@/hooks/useUpdater";
 import { SOUND_OPTIONS, playNotificationSound, type NotificationSound } from "@/lib/sounds";
 
 interface SettingsProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onBack: () => void;
   sidebarPosition: SidebarPosition;
   onSidebarPositionChange: (position: SidebarPosition) => void;
   defaultCommand: string;
@@ -35,8 +26,7 @@ interface SettingsProps {
 }
 
 export function Settings({
-  open,
-  onOpenChange,
+  onBack,
   sidebarPosition,
   onSidebarPositionChange,
   defaultCommand,
@@ -54,7 +44,6 @@ export function Settings({
   const [localCommand, setLocalCommand] = useState(defaultCommand);
   const [localBranchPrefix, setLocalBranchPrefix] = useState(branchPrefix);
 
-  // Sync local input state when the persisted value changes (e.g. after store hydration on restart)
   useEffect(() => {
     setLocalCommand(defaultCommand);
   }, [defaultCommand]);
@@ -63,39 +52,52 @@ export function Settings({
     setLocalBranchPrefix(branchPrefix);
   }, [branchPrefix]);
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      if (localCommand !== defaultCommand) {
-        onDefaultCommandChange(localCommand.trim());
-      }
-      if (localBranchPrefix !== branchPrefix) {
-        onBranchPrefixChange(localBranchPrefix.trim());
-      }
+  const handleBack = () => {
+    if (localCommand !== defaultCommand) {
+      onDefaultCommandChange(localCommand.trim());
     }
-    onOpenChange(open);
+    if (localBranchPrefix !== branchPrefix) {
+      onBranchPrefixChange(localBranchPrefix.trim());
+    }
+    onBack();
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent style={{ width: 500 }}>
-        <DialogClose onClick={() => handleOpenChange(false)} />
+    <div
+      className="flex flex-col h-full w-full bg-surface"
+      style={{ overflow: "hidden" }}
+    >
+      {/* Header */}
+      <div
+        data-tauri-drag-region
+        className="flex items-center border-b border-border bg-surface/80 backdrop-blur-md"
+        style={{ height: 36, minHeight: 36, paddingLeft: 78, paddingRight: 12 }}
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-foreground-muted"
+          style={{ gap: 6, padding: "4px 8px", height: 28 }}
+          onClick={handleBack}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <div data-tauri-drag-region className="flex-1" />
+      </div>
 
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto" style={{ padding: "32px 0" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 24px" }}>
+          <h1 className="text-lg font-semibold text-foreground" style={{ marginBottom: 32 }}>
+            Settings
+          </h1>
 
-        <DialogBody>
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            {/* Default Command */}
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <h3 className="text-sm font-medium text-foreground">
-                  Default Command
-                </h3>
-                <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                  Command to run when creating new sessions. Leave empty for a plain shell.
-                </p>
-              </div>
+            <SettingsSection
+              title="Default Command"
+              description="Command to run when creating new sessions. Leave empty for a plain shell."
+            >
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
                 style={{ padding: "8px 12px", height: 36 }}
@@ -111,18 +113,12 @@ export function Settings({
                 autoCapitalize="off"
                 spellCheck={false}
               />
-            </div>
+            </SettingsSection>
 
-            {/* Sidebar Position */}
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <h3 className="text-sm font-medium text-foreground">
-                  Sidebar Position
-                </h3>
-                <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                  Where the session list appears.
-                </p>
-              </div>
+            <SettingsSection
+              title="Sidebar Position"
+              description="Where the session list appears."
+            >
               <div className="flex" style={{ gap: 8 }}>
                 {(["left", "right", "top", "bottom"] as const).map((pos) => (
                   <Button
@@ -142,18 +138,12 @@ export function Settings({
                   </Button>
                 ))}
               </div>
-            </div>
+            </SettingsSection>
 
-            {/* Notification Sound */}
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <h3 className="text-sm font-medium text-foreground">
-                  Notification Sound
-                </h3>
-                <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                  Sound to play when a session needs your input.
-                </p>
-              </div>
+            <SettingsSection
+              title="Notification Sound"
+              description="Sound to play when a session needs your input."
+            >
               <div className="flex items-center" style={{ gap: 8 }}>
                 <select
                   className="rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
@@ -178,26 +168,17 @@ export function Settings({
                   </Button>
                 )}
               </div>
-            </div>
+            </SettingsSection>
 
-            {/* Default Working Directory */}
             <WorkingDirectoryInput
               value={defaultWorkingDir}
               onChange={onDefaultWorkingDirChange}
             />
 
-            {/* Git Worktrees */}
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <h3 className="text-sm font-medium text-foreground">
-                  Git Worktrees
-                </h3>
-                <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
-                  Automatically create a git worktree for each new session so work stays isolated.
-                </p>
-              </div>
-
-              {/* Enable toggle */}
+            <SettingsSection
+              title="Git Worktrees"
+              description="Automatically create a git worktree for each new session so work stays isolated."
+            >
               <div
                 className="flex items-center"
                 style={{ gap: 8, marginBottom: 16 }}
@@ -239,15 +220,9 @@ export function Settings({
                   </p>
                 </div>
               )}
-            </div>
+            </SettingsSection>
 
-            {/* Updates */}
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <h3 className="text-sm font-medium text-foreground">
-                  Updates
-                </h3>
-              </div>
+            <SettingsSection title="Updates">
               <div className="flex items-center" style={{ gap: 12 }}>
                 <Button
                   variant="outline"
@@ -268,11 +243,35 @@ export function Settings({
                   v{__APP_VERSION__}
                 </span>
               </div>
-            </div>
+            </SettingsSection>
           </div>
-        </DialogBody>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div style={{ marginBottom: 12 }}>
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        {description && (
+          <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+            {description}
+          </p>
+        )}
+      </div>
+      {children}
+    </div>
   );
 }
 
