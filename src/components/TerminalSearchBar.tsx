@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { SearchAddon } from "@xterm/addon-search";
 import { ChevronUp, ChevronDown, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ISearchOptions } from "@xterm/addon-search";
 
 interface TerminalSearchBarProps {
@@ -153,7 +154,8 @@ export function TerminalSearchBar({
       />
 
       {/* Case sensitivity toggle */}
-      <button
+      <Button
+        variant="ghost"
         title="Match Case"
         onClick={() => setCaseSensitive(!caseSensitive)}
         className={`rounded text-xs font-mono font-bold ${
@@ -161,13 +163,14 @@ export function TerminalSearchBar({
             ? "text-primary bg-primary/20"
             : "text-foreground-subtle hover:text-foreground-muted"
         }`}
-        style={{ padding: "2px 5px", lineHeight: 1.4 }}
+        style={{ padding: "2px 5px", lineHeight: 1.4, height: "auto" }}
       >
         Aa
-      </button>
+      </Button>
 
       {/* Regex toggle */}
-      <button
+      <Button
+        variant="ghost"
         title="Use Regular Expression"
         onClick={() => setRegex(!regex)}
         className={`rounded text-xs font-mono font-bold ${
@@ -175,10 +178,10 @@ export function TerminalSearchBar({
             ? "text-primary bg-primary/20"
             : "text-foreground-subtle hover:text-foreground-muted"
         }`}
-        style={{ padding: "2px 5px", lineHeight: 1.4 }}
+        style={{ padding: "2px 5px", lineHeight: 1.4, height: "auto" }}
       >
         .*
-      </button>
+      </Button>
 
       {/* Separator + match count */}
       <div
@@ -192,32 +195,35 @@ export function TerminalSearchBar({
       />
 
       {/* Navigation */}
-      <button
+      <Button
+        variant="ghost"
         title="Previous Match (Shift+Enter)"
         onClick={findPrevious}
         className="rounded text-foreground-subtle hover:text-foreground-muted hover:bg-surface-hover"
-        style={{ padding: 3 }}
+        style={{ padding: 3, height: "auto" }}
       >
         <ChevronUp size={14} />
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="ghost"
         title="Next Match (Enter)"
         onClick={findNext}
         className="rounded text-foreground-subtle hover:text-foreground-muted hover:bg-surface-hover"
-        style={{ padding: 3 }}
+        style={{ padding: 3, height: "auto" }}
       >
         <ChevronDown size={14} />
-      </button>
+      </Button>
 
       {/* Close */}
-      <button
+      <Button
+        variant="ghost"
         title="Close (Escape)"
         onClick={onClose}
         className="rounded text-foreground-subtle hover:text-foreground-muted hover:bg-surface-hover"
-        style={{ padding: 3, marginLeft: 2 }}
+        style={{ padding: 3, marginLeft: 2, height: "auto" }}
       >
         <X size={14} />
-      </button>
+      </Button>
     </div>
   );
 }

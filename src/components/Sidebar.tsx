@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
 import type { PersistedTab } from "@/lib/persisted-tabs";
@@ -124,14 +125,16 @@ function VerticalSidebar({
           Sessions
         </span>
         {onCollapse && (
-          <button
-            className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover transition-colors"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
             style={{ width: 22, height: 22 }}
             onClick={onCollapse}
             title="Collapse sidebar (⌘B)"
           >
             <ChevronsLeft size={14} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -195,8 +198,10 @@ function VerticalSidebar({
                 style={{ gap: 2, marginLeft: 4 }}
               >
                 {session.status === "exited" && (
-                  <button
-                    className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
                     style={{ width: 22, height: 22 }}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -205,10 +210,12 @@ function VerticalSidebar({
                     title="Restart"
                   >
                     <RotateCw className="h-3 w-3" />
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
                   style={{ width: 22, height: 22 }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -217,7 +224,7 @@ function VerticalSidebar({
                   title="Close"
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
             </div>
           );
@@ -225,14 +232,15 @@ function VerticalSidebar({
       </div>
 
       <div className="border-t border-border" style={{ padding: 8 }}>
-        <button
-          className="flex items-center w-full rounded-lg text-sm text-foreground-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
-          style={{ padding: "8px 10px", gap: 8 }}
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-foreground-muted hover:text-foreground"
+          style={{ padding: "8px 10px", gap: 8, height: "auto" }}
           onClick={onNew}
         >
           <Plus className="h-4 w-4" />
           New Session
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -283,8 +291,10 @@ function HorizontalSidebar({
                 <span className="text-xs truncate" style={{ maxWidth: 80 }}>{session.gitBranch}</span>
               </span>
             )}
-            <button
-              className="flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-foreground-subtle hover:text-foreground transition-opacity"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="opacity-0 group-hover:opacity-100 text-foreground-subtle hover:text-foreground"
               style={{ width: 16, height: 16 }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -292,19 +302,21 @@ function HorizontalSidebar({
               }}
             >
               <X className="h-3 w-3" />
-            </button>
+            </Button>
           </div>
         );
       })}
 
-      <button
-        className="flex items-center justify-center rounded-md text-foreground-subtle hover:text-foreground hover:bg-surface-elevated transition-colors flex-shrink-0"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-md text-foreground-subtle hover:text-foreground flex-shrink-0"
         style={{ width: 28, height: 28 }}
         onClick={onNew}
         title="New Session"
       >
         <Plus className="h-4 w-4" />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -338,24 +350,28 @@ export function CollapsedSidebar({
         className="flex items-center justify-center border-b border-border"
         style={{ height: 41 }}
       >
-        <button
-          className="flex items-center justify-center rounded text-foreground-subtle hover:text-foreground hover:bg-surface-hover transition-colors"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-foreground-subtle hover:text-foreground hover:bg-surface-hover"
           style={{ width: 28, height: 28 }}
           onClick={onExpand}
           title="Expand sidebar (⌘B)"
         >
           {position === "left" ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col items-center" style={{ padding: 6, gap: 2 }}>
         {sessions.map((session) => {
           const dot = getActivityDot(session);
           return (
-            <button
+            <Button
               key={session.id}
+              variant="ghost"
+              size="icon"
               className={cn(
-                "flex items-center justify-center rounded-lg cursor-pointer transition-colors",
+                "cursor-pointer",
                 session.id === activeSessionId
                   ? "bg-surface-elevated"
                   : "hover:bg-surface-elevated/50"
@@ -373,20 +389,22 @@ export function CollapsedSidebar({
                   ...(dot.animation ? { animation: dot.animation } : {}),
                 }}
               />
-            </button>
+            </Button>
           );
         })}
       </div>
 
       <div className="border-t border-border flex justify-center" style={{ padding: 6 }}>
-        <button
-          className="flex items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-foreground-muted hover:text-foreground"
           style={{ width: 32, height: 32 }}
           onClick={onNew}
           title="New Session (⌘T)"
         >
           <Plus className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -123,19 +123,21 @@ export function Settings({
               </div>
               <div className="flex" style={{ gap: 8 }}>
                 {(["left", "right", "top", "bottom"] as const).map((pos) => (
-                  <button
+                  <Button
                     key={pos}
+                    variant="outline"
+                    size="sm"
                     className={
-                      "rounded-lg border text-sm capitalize transition-colors " +
+                      "capitalize " +
                       (sidebarPosition === pos
                         ? "border-primary bg-primary/10 text-foreground"
-                        : "border-border bg-surface-elevated text-foreground-muted hover:border-border-focus")
+                        : "")
                     }
                     style={{ padding: "6px 14px" }}
                     onClick={() => onSidebarPositionChange(pos)}
                   >
                     {pos}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -164,14 +166,14 @@ export function Settings({
                   ))}
                 </select>
                 {notificationSound !== "none" && (
-                  <button
-                    className="flex items-center justify-center rounded-lg border border-border text-foreground-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
-                    style={{ width: 36, height: 36 }}
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={() => playNotificationSound(notificationSound)}
                     title="Preview sound"
                   >
                     <Volume2 className="h-4 w-4" />
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -198,14 +200,16 @@ export function Settings({
                 className="flex items-center cursor-pointer"
                 style={{ gap: 8, marginBottom: 16 }}
               >
-                <button
+                <Button
+                  variant="ghost"
                   role="switch"
                   aria-checked={worktreeEnabled}
                   onClick={() => onWorktreeEnabledChange(!worktreeEnabled)}
-                  className="relative inline-flex shrink-0 rounded-full transition-colors"
+                  className="relative inline-flex shrink-0 rounded-full hover:bg-transparent"
                   style={{
                     width: 36,
                     height: 20,
+                    padding: 0,
                     backgroundColor: worktreeEnabled ? "var(--color-primary)" : "var(--color-border)",
                   }}
                 >
@@ -218,7 +222,7 @@ export function Settings({
                       transform: worktreeEnabled ? "translateX(16px)" : "translateX(0)",
                     }}
                   />
-                </button>
+                </Button>
                 <span className="text-sm text-foreground">
                   Enable auto worktree creation
                 </span>

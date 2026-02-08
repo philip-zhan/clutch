@@ -1,6 +1,7 @@
 import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
 
 interface DialogProps {
   open: boolean;
@@ -126,10 +127,12 @@ interface DialogCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
   ({ className, ...props }, ref) => (
-    <button
+    <Button
       ref={ref}
+      variant="ghost"
+      size="icon"
       className={cn(
-        "absolute flex items-center justify-center rounded-lg text-foreground-subtle transition-colors hover:bg-surface-elevated hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        "absolute text-foreground-subtle hover:text-foreground",
         className
       )}
       style={{ right: 16, top: 16, width: 32, height: 32 }}
@@ -137,7 +140,7 @@ const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
     >
       <X className="h-4 w-4" />
       <span className="sr-only">Close</span>
-    </button>
+    </Button>
   )
 );
 DialogClose.displayName = "DialogClose";

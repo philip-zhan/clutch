@@ -4,6 +4,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "./ui/resiz
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import type { Session } from "../lib/sessions";
 import { Plus } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface SessionContentProps {
     sessions: Session[];
@@ -133,13 +134,12 @@ export function SessionContent({
                             Press <kbd className="font-mono text-foreground-muted">⌘T</kbd> or click below to start
                         </p>
                     </div>
-                    <button
-                        className="rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors"
+                    <Button
                         style={{ padding: "8px 20px" }}
                         onClick={onNewSession}
                     >
                         Create your first session
-                    </button>
+                    </Button>
                 </div>
             )}
         </div>
