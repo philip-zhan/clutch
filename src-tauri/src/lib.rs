@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod git;
 mod hooks_config;
 mod notifications;

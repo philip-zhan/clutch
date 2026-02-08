@@ -1,3 +1,4 @@
+use crate::config;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -16,9 +17,11 @@ impl SessionsDir {
             .map_err(|e| format!("Failed to create sessions dir: {}", e))?;
 
         // Clean up any stale session dirs from previous runs (crash recovery)
-        if let Ok(entries) = std::fs::read_dir(&path) {
-            for entry in entries.flatten() {
-                let _ = std::fs::remove_dir_all(entry.path());
+        if config::CLEANUP_STALE_SESSIONS_ON_STARTUP {
+            if let Ok(entries) = std::fs::read_dir(&path) {
+                for entry in entries.flatten() {
+                    let _ = std::fs::remove_dir_all(entry.path());
+                }
             }
         }
 
