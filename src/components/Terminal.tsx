@@ -115,6 +115,7 @@ export function Terminal({
       fontSize: 13,
       lineHeight: 1.35,
       letterSpacing: 0,
+      overviewRuler: { width: 0 },
       theme: {
         background: backgroundColor,
         foreground: "#e4e4e7",
@@ -197,7 +198,7 @@ export function Terminal({
     });
     resizeObserver.observe(containerRef.current);
 
-    // Single source of truth for PTY resize — fires after fitAddon.fit()
+    // Single source of truth for PTY resize — fires after fitWithScrollbarGap()
     terminal.onResize(({ cols, rows }) => {
       resize(cols, rows);
     });

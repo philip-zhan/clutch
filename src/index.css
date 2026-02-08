@@ -92,6 +92,7 @@ button, a, input {
 /* Xterm container overrides */
 .terminal-wrapper {
   position: relative;
+  overflow: hidden;
 }
 
 .terminal-wrapper::before {
@@ -115,27 +116,9 @@ button, a, input {
   height: 100%;
 }
 
-.terminal-wrapper .xterm-viewport {
-  overflow-y: auto !important;
+.terminal-wrapper .xterm .xterm-viewport {
+  right: -14px !important;
   background-color: inherit !important;
-}
-
-/* Custom scrollbar for terminal */
-.terminal-wrapper .xterm-viewport::-webkit-scrollbar {
-  width: 8px;
-}
-
-.terminal-wrapper .xterm-viewport::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.terminal-wrapper .xterm-viewport::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
-}
-
-.terminal-wrapper .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-focus);
 }
 
 /* Attention pulse for sessions needing input */
