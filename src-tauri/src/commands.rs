@@ -172,6 +172,19 @@ pub fn session_resize(
     Ok(())
 }
 
+#[tauri::command]
+pub fn get_git_branches(
+    sessions: HashMap<String, String>,
+) -> HashMap<String, String> {
+    let mut result = HashMap::new();
+    for (session_id, working_dir) in sessions {
+        if let Some(branch) = git::get_branch(&working_dir) {
+            result.insert(session_id, branch);
+        }
+    }
+    result
+}
+
 /// Clean up all active sessions — called on app exit.
 pub fn cleanup_all(
     pty_state: &PtyState,

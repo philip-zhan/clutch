@@ -33,7 +33,8 @@
     "react-dom": "^19.1.0",
     "react-resizable-panels": "^4",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

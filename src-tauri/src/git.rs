@@ -66,7 +66,8 @@ pub fn create_worktree(
             let home = std::env::var("HOME")
                 .map_err(|_| "Cannot determine home directory".to_string())?;
             Path::new(&home)
-                .join(".claude-worktrees")
+                .join(".clutch")
+                .join("worktrees")
                 .join(repo_name)
                 .join(&folder_name)
                 .to_string_lossy()
@@ -170,6 +171,27 @@ pub fn remove_worktree(repo_root: &str, worktree_path: &str) -> WorktreeRemoveRe
             success: false,
             error: Some(format!("Failed to run git worktree remove: {}", e)),
         },
+    }
+}
+
+/// Get the current git branch name for a directory.
+/// Returns the branch name, or None if not in a git repo.
+pub fn get_branch(dir: &str) -> Option<String> {
+    let output = Command::new("git")
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
+        .current_dir(dir)
+        .output()
+        .ok()?;
+
+    if output.status.success() {
+        let branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if branch.is_empty() {
+            None
+        } else {
+            Some(branch)
+        }
+    } else {
+        None
     }
 }
 

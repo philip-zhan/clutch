@@ -5,8 +5,8 @@ mod notifications;
 mod pty;
 
 use commands::{
-    cleanup_session_worktree, create_session, destroy_session, restart_session, session_resize,
-    session_write, setup_session_worktree, PtyState, WorktreeRegistry,
+    cleanup_session_worktree, create_session, destroy_session, get_git_branches, restart_session,
+    session_resize, session_write, setup_session_worktree, PtyState, WorktreeRegistry,
 };
 use notifications::{poll_session_activity, SessionsDir};
 use std::collections::HashMap;
@@ -40,6 +40,7 @@ pub fn run() {
             setup_session_worktree,
             cleanup_session_worktree,
             poll_session_activity,
+            get_git_branches,
         ])
         .setup(|app| {
             // Auto-configure Claude Code hooks (UserPromptSubmit + Stop + Notification)

@@ -1,10 +1,12 @@
-import { Settings } from "lucide-react";
+import { Settings, PanelBottomOpen, PanelBottomClose } from "lucide-react";
 
 interface TitleBarProps {
   onSettingsClick: () => void;
+  onTogglePanel: () => void;
+  isPanelVisible: boolean;
 }
 
-export function TitleBar({ onSettingsClick }: TitleBarProps) {
+export function TitleBar({ onSettingsClick, onTogglePanel, isPanelVisible }: TitleBarProps) {
   return (
     <div
       data-tauri-drag-region
@@ -17,6 +19,19 @@ export function TitleBar({ onSettingsClick }: TitleBarProps) {
       }}
     >
       <div data-tauri-drag-region className="flex-1" />
+
+      <button
+        className="flex items-center justify-center rounded-md text-foreground-subtle hover:text-foreground hover:bg-surface-elevated transition-colors"
+        style={{ width: 28, height: 28, marginRight: 4 }}
+        onClick={onTogglePanel}
+        title={isPanelVisible ? "Hide Terminal Panel (⌘J)" : "Show Terminal Panel (⌘J)"}
+      >
+        {isPanelVisible ? (
+          <PanelBottomClose className="h-4 w-4" />
+        ) : (
+          <PanelBottomOpen className="h-4 w-4" />
+        )}
+      </button>
 
       <button
         className="flex items-center justify-center rounded-md text-foreground-subtle hover:text-foreground hover:bg-surface-elevated transition-colors"
