@@ -37,7 +37,6 @@ export function useUpdater(): UseUpdaterResult {
 	});
 
 	const updateRef = useRef<Update | null>(null);
-	const hasCheckedRef = useRef(false);
 
 	const checkForUpdates = useCallback(async () => {
 		if (state.status === "checking" || state.status === "downloading") {
@@ -127,17 +126,19 @@ export function useUpdater(): UseUpdaterResult {
 		updateRef.current = null;
 	}, []);
 
-	// Auto-check on startup
+	// Auto-check on startup + every 30 minutes
 	useEffect(() => {
 		const initialTimer = setTimeout(() => {
-			if (!hasCheckedRef.current) {
-				hasCheckedRef.current = true;
-				checkForUpdates();
-			}
+			checkForUpdates();
 		}, 3000);
+
+		const interval = setInterval(() => {
+			checkForUpdates();
+		}, 30 * 60 * 1000);
 
 		return () => {
 			clearTimeout(initialTimer);
+			clearInterval(interval);
 		};
 	}, [checkForUpdates]);
 
