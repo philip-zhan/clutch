@@ -1,18 +1,13 @@
 use crate::git;
 use crate::notifications::SessionsDir;
 use crate::pty::PtyManager;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, State};
 
 pub struct PtyState(pub Mutex<HashMap<String, PtyManager>>);
 
-pub struct WorktreeInfo {
-    pub worktree_path: String,
-    pub git_repo_path: String,
-}
-
-pub struct WorktreeRegistry(pub Mutex<HashMap<String, WorktreeInfo>>);
+pub struct WorktreeRegistry(pub Mutex<HashSet<String>>);
 
 #[tauri::command]
 pub fn create_session(
@@ -125,12 +120,9 @@ pub fn setup_session_worktree(
     location: String,
 ) -> git::WorktreeSetupResult {
     let result = git::setup_worktree_for_session(&working_dir, &branch_name, &location);
-    if let (Some(wt_path), Some(repo_path)) = (&result.worktree_path, &result.git_repo_path) {
-        if let Ok(mut map) = registry.0.lock() {
-            map.insert(worktree_id, WorktreeInfo {
-                worktree_path: wt_path.clone(),
-                git_repo_path: repo_path.clone(),
-            });
+    if result.worktree_path.is_some() {
+        if let Ok(mut set) = registry.0.lock() {
+            set.insert(worktree_id);
         }
     }
     result
@@ -145,8 +137,8 @@ pub fn cleanup_session_worktree(
 ) -> git::WorktreeRemoveResult {
     let result = git::remove_worktree(&git_repo_path, &worktree_path);
     if result.success {
-        if let Ok(mut map) = registry.0.lock() {
-            map.remove(&worktree_id);
+        if let Ok(mut set) = registry.0.lock() {
+            set.remove(&worktree_id);
         }
     }
     result

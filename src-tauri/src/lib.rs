@@ -10,7 +10,7 @@ use commands::{
     WorktreeRegistry,
 };
 use notifications::{poll_session_activity, SessionsDir};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tauri::tray::TrayIconEvent;
 #[cfg(target_os = "macos")]
@@ -28,7 +28,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(PtyState(Mutex::new(HashMap::new())))
-        .manage(WorktreeRegistry(Mutex::new(HashMap::new())))
+        .manage(WorktreeRegistry(Mutex::new(HashSet::new())))
         .manage(Arc::new(
             SessionsDir::new().expect("Failed to create sessions directory"),
         ))
