@@ -157,6 +157,22 @@ button, a, input {
   }
 }
 
+/* Search bar slide-in */
+@keyframes search-bar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-bar-enter {
+  animation: search-bar-slide-in 0.15s ease-out;
+}
+
 /* Focus ring */
 .focus-ring {
   outline: none;
