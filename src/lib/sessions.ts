@@ -29,6 +29,9 @@ export interface Session {
 	persistedTabId?: string; // FK → PersistedTab.id
 	activityState?: ClaudeActivityState;
 	gitBranch?: string;
+	worktreePath?: string;
+	gitRepoPath?: string;
+	originalWorkingDir?: string;
 }
 
 export function generateSessionId(): string {
