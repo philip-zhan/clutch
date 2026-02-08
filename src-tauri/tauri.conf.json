@@ -25,7 +25,8 @@
         "minWidth": 600,
         "minHeight": 600,
         "titleBarStyle": "Overlay",
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "zoomHotkeysEnabled": true
       }
     ],
     "security": {
@@ -50,6 +51,11 @@
       "endpoints": [
         "https://github.com/philip-zhan/clutch/releases/latest/download/latest.json"
       ]
+    },
+    "core": {
+      "webview": {
+        "allow-set-webview-zoom": true
+      }
     }
   }
 }
