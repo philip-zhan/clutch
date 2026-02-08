@@ -13,7 +13,6 @@ use commands::{
 use notifications::{poll_session_activity, SessionsDir};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
-use tauri::tray::TrayIconEvent;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 use tauri::RunEvent;
@@ -48,21 +47,6 @@ pub fn run() {
         .setup(|app| {
             // Auto-configure Claude Code hooks (UserPromptSubmit + Stop + Notification)
             hooks_config::ensure_hooks();
-
-            // Set up tray icon click handler
-            if let Some(tray) = app.tray_by_id("main") {
-                tray.on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click { .. } = event {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            #[cfg(target_os = "macos")]
-                            let _ = app.set_activation_policy(ActivationPolicy::Regular);
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                });
-            }
 
             // Handle window close event - hide instead of quit
             if let Some(window) = app.get_webview_window("main") {
