@@ -18,6 +18,12 @@ const NOTIFY_HOOK: &str =
 const PRE_TOOL_USE_HOOK: &str =
     r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PreToolUse"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
 
+const PERMISSION_REQUEST_HOOK: &str =
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PermissionRequest"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+
+const TASK_COMPLETED_HOOK: &str =
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "TaskCompleted"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
     let Some(settings_path) = claude_settings_path() else {
@@ -61,6 +67,12 @@ pub fn ensure_hooks() {
 
     // --- PreToolUse hook ---
     ensure_hook_entry(hooks_obj, "PreToolUse", PRE_TOOL_USE_HOOK);
+
+    // --- PermissionRequest hook ---
+    ensure_hook_entry(hooks_obj, "PermissionRequest", PERMISSION_REQUEST_HOOK);
+
+    // --- TaskCompleted hook ---
+    ensure_hook_entry(hooks_obj, "TaskCompleted", TASK_COMPLETED_HOOK);
 
     if let Ok(formatted) = serde_json::to_string_pretty(&settings) {
         let _ = std::fs::write(&settings_path, formatted);
