@@ -14,6 +14,7 @@ export interface TerminalProps {
   command?: string;
   isActive: boolean;
   onStatusChange?: (status: "running" | "exited") => void;
+  backgroundColor?: string;
 }
 
 export function Terminal({
@@ -22,6 +23,7 @@ export function Terminal({
   command,
   isActive,
   onStatusChange,
+  backgroundColor = "#000000",
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
@@ -111,7 +113,7 @@ export function Terminal({
       lineHeight: 1.35,
       letterSpacing: 0,
       theme: {
-        background: "#000000",
+        background: backgroundColor,
         foreground: "#e4e4e7",
         cursor: "#3b82f6",
         cursorAccent: "#09090b",
@@ -208,7 +210,8 @@ export function Terminal({
     <div style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%" }}>
       <div
         ref={containerRef}
-        className="terminal-wrapper h-full w-full flex-1 bg-black"
+        className="terminal-wrapper h-full w-full flex-1"
+        style={{ backgroundColor }}
       />
       {isSearchOpen && searchAddonRef.current && (
         <TerminalSearchBar

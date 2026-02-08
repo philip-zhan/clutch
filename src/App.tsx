@@ -472,6 +472,7 @@ function App() {
                                                         sessionId={`${session.id}_panel`}
                                                         workingDir={session.workingDir}
                                                         isActive={isActive && visiblePanels.has(session.id)}
+                                                        backgroundColor="#111114"
                                                     />
                                                 </ResizablePanel>
                                             </>
