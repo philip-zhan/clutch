@@ -116,12 +116,8 @@ button, a, input {
 }
 
 .terminal-wrapper .xterm-viewport {
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   background-color: inherit !important;
-}
-
-.terminal-wrapper .xterm-screen {
-  height: 100%;
 }
 
 /* Custom scrollbar for terminal */

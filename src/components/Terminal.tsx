@@ -3,6 +3,7 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { SearchAddon } from "@xterm/addon-search";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
 import type { ISearchOptions } from "@xterm/addon-search";
 import { usePty } from "../hooks/usePty";
 import { TerminalSearchBar } from "./TerminalSearchBar";
@@ -143,9 +144,12 @@ export function Terminal({
     const fitAddon = new FitAddon();
     const webLinksAddon = new WebLinksAddon();
     const searchAddon = new SearchAddon();
+    const unicode11Addon = new Unicode11Addon();
     terminal.loadAddon(fitAddon);
     terminal.loadAddon(webLinksAddon);
     terminal.loadAddon(searchAddon);
+    terminal.loadAddon(unicode11Addon);
+    terminal.unicode.activeVersion = "11";
 
     terminal.open(containerRef.current);
     fitAddon.fit();
@@ -160,6 +164,13 @@ export function Terminal({
 
     spawn(cols, rows, workingDir || undefined, command || undefined).then(() => {
       onStatusChange?.("running");
+      // Re-fit after spawn to catch container layout settling
+      setTimeout(() => {
+        try {
+          fitAddon.fit();
+          resize(terminal.cols, terminal.rows);
+        } catch { /* container may not be visible */ }
+      }, 100);
     }).catch((err) => {
       terminal.writeln(`\x1b[31mFailed to spawn PTY: ${err}\x1b[0m`);
     });
@@ -168,10 +179,16 @@ export function Terminal({
       write(data);
     });
 
+    // Debounced resize handler — only notify the PTY via terminal.onResize
+    // to avoid duplicate resize calls
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const handleResize = () => {
-      fitAddon.fit();
-      const { cols, rows } = terminal;
-      resize(cols, rows);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        try {
+          fitAddon.fit();
+        } catch { /* ignore if container hidden */ }
+      }, 50);
     };
     window.addEventListener("resize", handleResize);
 
@@ -180,11 +197,13 @@ export function Terminal({
     });
     resizeObserver.observe(containerRef.current);
 
+    // Single source of truth for PTY resize — fires after fitAddon.fit()
     terminal.onResize(({ cols, rows }) => {
       resize(cols, rows);
     });
 
     return () => {
+      clearTimeout(resizeTimer);
       window.removeEventListener("resize", handleResize);
       resizeObserver.disconnect();
       terminal.dispose();
