@@ -7,16 +7,16 @@ fn claude_settings_path() -> Option<PathBuf> {
 }
 
 const PROMPT_SUBMIT_HOOK: &str =
-    r#"echo "UserPromptSubmit" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "UserPromptSubmit"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
 
 const STOP_HOOK: &str =
-    r#"echo "Stop" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Stop"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
 
 const NOTIFY_HOOK: &str =
-    r#"echo "Notification" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Notification"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
 
 const PRE_TOOL_USE_HOOK: &str =
-    r#"echo "PreToolUse" > "$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PreToolUse"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
 
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
@@ -67,8 +67,8 @@ pub fn ensure_hooks() {
     }
 }
 
-/// Ensure a hook entry exists for the given event type with the given command.
-/// Migrates legacy entries containing `CLUTCH_NOTIFY_DIR` if found.
+/// Ensure exactly one hook entry exists for the given event type with the given command.
+/// Removes any stale Clutch entries and adds the current one if missing.
 fn ensure_hook_entry(
     hooks_obj: &mut serde_json::Map<String, Value>,
     event_type: &str,
@@ -84,55 +84,26 @@ fn ensure_hook_entry(
         None => return,
     };
 
-    // Check if the exact command is already present
-    let has_current = arr.iter().any(|entry| entry_has_command(entry, command));
-    if has_current {
-        return;
-    }
-
-    // Migrate any entry containing CLUTCH_NOTIFY_DIR (old touch-based commands)
-    let legacy_idx = arr.iter().position(|entry| {
-        entry
+    // Remove any stale Clutch entries that don't match the current command
+    arr.retain(|entry| {
+        let is_clutch = entry
             .get("hooks")
             .and_then(|h| h.as_array())
             .map(|hooks| {
                 hooks.iter().any(|hook| {
                     hook.get("command")
                         .and_then(|c| c.as_str())
-                        .map(|c| c.contains("CLUTCH_NOTIFY_DIR"))
+                        .map(|c| c.contains("CLUTCH_SESSION_ID") || c.contains("CLUTCH_NOTIFY_DIR"))
                         .unwrap_or(false)
                 })
             })
-            .unwrap_or(false)
+            .unwrap_or(false);
+        !is_clutch
     });
 
-    if let Some(idx) = legacy_idx {
-        // Replace legacy entry with the new command
-        arr[idx] = json!({
-            "matcher": "",
-            "hooks": [{ "type": "command", "command": command }]
-        });
-        return;
-    }
-
-    // No existing entry — add new one
+    // Add the current command
     arr.push(json!({
         "matcher": "",
         "hooks": [{ "type": "command", "command": command }]
     }));
-}
-
-fn entry_has_command(entry: &Value, command: &str) -> bool {
-    entry
-        .get("hooks")
-        .and_then(|h| h.as_array())
-        .map(|hooks| {
-            hooks.iter().any(|hook| {
-                hook.get("command")
-                    .and_then(|c| c.as_str())
-                    .map(|c| c == command)
-                    .unwrap_or(false)
-            })
-        })
-        .unwrap_or(false)
 }

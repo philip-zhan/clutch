@@ -9,6 +9,7 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import { Switch } from "./ui/switch";
 import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 import type { SidebarPosition } from "@/lib/sessions";
 import type { UseUpdaterResult } from "@/hooks/useUpdater";
@@ -196,37 +197,21 @@ export function Settings({
               </div>
 
               {/* Enable toggle */}
-              <label
-                className="flex items-center cursor-pointer"
+              <div
+                className="flex items-center"
                 style={{ gap: 8, marginBottom: 16 }}
               >
-                <Button
-                  variant="ghost"
-                  role="switch"
-                  aria-checked={worktreeEnabled}
+                <Switch
+                  checked={worktreeEnabled}
+                  onCheckedChange={onWorktreeEnabledChange}
+                />
+                <label
+                  className="text-sm text-foreground cursor-pointer"
                   onClick={() => onWorktreeEnabledChange(!worktreeEnabled)}
-                  className="relative inline-flex shrink-0 rounded-full hover:bg-transparent"
-                  style={{
-                    width: 36,
-                    height: 20,
-                    padding: 0,
-                    backgroundColor: worktreeEnabled ? "var(--color-primary)" : "var(--color-border)",
-                  }}
                 >
-                  <span
-                    className="rounded-full bg-white shadow transition-transform"
-                    style={{
-                      width: 16,
-                      height: 16,
-                      margin: 2,
-                      transform: worktreeEnabled ? "translateX(16px)" : "translateX(0)",
-                    }}
-                  />
-                </Button>
-                <span className="text-sm text-foreground">
                   Enable auto worktree creation
-                </span>
-              </label>
+                </label>
+              </div>
 
               {worktreeEnabled && (
                 <div>

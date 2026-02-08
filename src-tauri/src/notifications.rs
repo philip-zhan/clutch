@@ -42,9 +42,11 @@ pub fn poll_session_activity(
     for id in session_ids {
         let status_path = sessions_dir.path.join(&id).join("status");
         if let Ok(content) = std::fs::read_to_string(&status_path) {
-            let trimmed = content.trim().to_string();
-            if !trimmed.is_empty() {
-                result.insert(id, trimmed);
+            if let Some(first_line) = content.lines().next() {
+                let trimmed = first_line.trim().to_string();
+                if !trimmed.is_empty() {
+                    result.insert(id, trimmed);
+                }
             }
         }
     }
