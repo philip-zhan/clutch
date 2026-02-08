@@ -1,9 +1,11 @@
 import { useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { nanoid } from "nanoid";
 import { useSessionStore } from "./hooks/useSessionStore";
 import { useUpdater } from "./hooks/useUpdater";
-import { generateSessionId } from "./lib/sessions";
+import { generateSessionId, generateBranchName } from "./lib/sessions";
 import type { Session } from "./lib/sessions";
+import type { Worktree } from "./lib/worktrees";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
@@ -18,6 +20,7 @@ import { useState } from "react";
 function App() {
     const {
         sessions,
+        worktrees,
         activeSessionId,
         sidebarPosition,
         defaultCommand,
@@ -37,6 +40,9 @@ function App() {
         notificationSound,
         setNotificationSound,
         setActivityState,
+        addWorktree,
+        removeWorktree,
+        getWorktree,
     } = useSessionStore();
 
     const updater = useUpdater();
@@ -62,27 +68,35 @@ function App() {
         async (name: string, workingDir: string, command: string) => {
             const sessionId = generateSessionId();
             let effectiveDir = workingDir;
-            let worktreePath: string | undefined;
-            let gitRepoPath: string | undefined;
-            let originalWorkingDir: string | undefined;
+            let worktreeId: string | undefined;
 
             if (worktreeEnabled && workingDir && sessions.length > 0) {
                 try {
+                    const wtId = nanoid();
+                    const branchName = `${branchPrefix}${generateBranchName()}`;
                     const result = await invoke<{
                         effective_dir: string;
                         worktree_path: string | null;
                         git_repo_path: string | null;
                     }>("setup_session_worktree", {
-                        sessionId,
+                        worktreeId: wtId,
+                        branchName,
                         workingDir,
                         location: "home",
-                        branchPrefix,
                     });
                     effectiveDir = result.effective_dir;
-                    worktreePath = result.worktree_path ?? undefined;
-                    gitRepoPath = result.git_repo_path ?? undefined;
-                    if (worktreePath) {
-                        originalWorkingDir = workingDir;
+                    if (result.worktree_path && result.git_repo_path) {
+                        const worktree: Worktree = {
+                            id: wtId,
+                            branchName,
+                            worktreePath: result.worktree_path,
+                            gitRepoPath: result.git_repo_path,
+                            originalWorkingDir: workingDir,
+                            command: command || undefined,
+                            createdAt: Date.now(),
+                        };
+                        addWorktree(worktree);
+                        worktreeId = wtId;
                     }
                 } catch {
                     // Fallback to original dir
@@ -96,28 +110,81 @@ function App() {
                 command: command || undefined,
                 status: "running",
                 createdAt: Date.now(),
-                worktreePath,
-                gitRepoPath,
-                originalWorkingDir,
+                worktreeId,
                 activityState: "idling",
             };
             addSession(session);
         },
-        [addSession, sessions.length, worktreeEnabled, branchPrefix]
+        [addSession, addWorktree, sessions.length, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
         handleCreateSession("", defaultWorkingDir, defaultCommand);
     }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
 
-    // Auto-create a session on startup
-    const hasAutoCreatedRef = useRef(false);
+    // Startup: restore sessions from persisted worktrees
+    const hasRestoredRef = useRef(false);
     useEffect(() => {
-        if (isLoaded && sessions.length === 0 && !hasAutoCreatedRef.current) {
-            hasAutoCreatedRef.current = true;
-            handleNewSession();
-        }
-    }, [isLoaded, sessions.length, handleNewSession]);
+        if (!isLoaded || hasRestoredRef.current) return;
+        hasRestoredRef.current = true;
+
+        const restore = async () => {
+            if (worktrees.length === 0) {
+                // No persisted worktrees — create a fresh main-branch session
+                handleNewSession();
+                return;
+            }
+
+            // Validate which worktree paths still exist on disk
+            const paths = worktrees.map((wt) => wt.worktreePath);
+            let valid: boolean[];
+            try {
+                valid = await invoke<boolean[]>("validate_worktrees", { worktreePaths: paths });
+            } catch {
+                // If validation fails, treat all as valid
+                valid = paths.map(() => true);
+            }
+
+            const validWorktrees: Worktree[] = [];
+            const invalidWorktreeIds: string[] = [];
+
+            for (let i = 0; i < worktrees.length; i++) {
+                if (valid[i]) {
+                    validWorktrees.push(worktrees[i]);
+                } else {
+                    invalidWorktreeIds.push(worktrees[i].id);
+                }
+            }
+
+            // Remove invalid worktrees from store
+            for (const id of invalidWorktreeIds) {
+                removeWorktree(id);
+            }
+
+            if (validWorktrees.length === 0) {
+                // All worktrees were invalid — create a fresh session
+                handleNewSession();
+                return;
+            }
+
+            // Create sessions for each valid worktree
+            for (const wt of validWorktrees) {
+                const session: Session = {
+                    id: generateSessionId(),
+                    name: "",
+                    workingDir: wt.worktreePath,
+                    command: wt.command,
+                    status: "running",
+                    createdAt: Date.now(),
+                    worktreeId: wt.id,
+                    activityState: "idling",
+                };
+                addSession(session);
+            }
+        };
+
+        restore();
+    }, [isLoaded, worktrees, handleNewSession, addSession, removeWorktree]);
 
     const handleCloseSession = useCallback(
         async (sessionId: string) => {
@@ -148,32 +215,39 @@ function App() {
                 // PTY may already be gone
             }
 
-            // Clean up worktree if one was created
-            if (session?.worktreePath && session?.gitRepoPath) {
-                try {
-                    const result = await invoke<{ success: boolean; error: string | null }>(
-                        "cleanup_session_worktree",
-                        {
-                            worktreePath: session.worktreePath,
-                            gitRepoPath: session.gitRepoPath,
-                        }
-                    );
-                    if (!result.success && result.error) {
-                        const { message } = await import("@tauri-apps/plugin-dialog");
-                        await message(
-                            `Could not remove worktree:\n${result.error}\n\nThe worktree has been kept at:\n${session.worktreePath}`,
-                            { title: "Worktree Cleanup", kind: "warning" }
+            // Clean up worktree if one was linked
+            if (session?.worktreeId) {
+                const worktree = getWorktree(session.worktreeId);
+                if (worktree) {
+                    try {
+                        const result = await invoke<{ success: boolean; error: string | null }>(
+                            "cleanup_session_worktree",
+                            {
+                                worktreeId: worktree.id,
+                                worktreePath: worktree.worktreePath,
+                                gitRepoPath: worktree.gitRepoPath,
+                            }
                         );
+                        if (result.success) {
+                            removeWorktree(worktree.id);
+                        } else if (result.error) {
+                            const { message } = await import("@tauri-apps/plugin-dialog");
+                            await message(
+                                `Could not remove worktree:\n${result.error}\n\nThe worktree has been kept at:\n${worktree.worktreePath}`,
+                                { title: "Worktree Cleanup", kind: "warning" }
+                            );
+                            // Worktree kept — will restore on next launch
+                        }
+                    } catch {
+                        // Best effort — worktree kept for next launch
                     }
-                } catch {
-                    // Best effort
                 }
             }
 
             mountedSessionsRef.current.delete(sessionId);
             removeSession(sessionId);
         },
-        [sessions, removeSession, mountedPanels]
+        [sessions, removeSession, mountedPanels, getWorktree, removeWorktree]
     );
 
     const handleRestartSession = useCallback(
@@ -181,14 +255,15 @@ function App() {
             const session = sessions.find((s) => s.id === sessionId);
             if (!session) return;
 
-            const restartDir = session.originalWorkingDir ?? session.workingDir;
+            const worktree = getWorktree(session.worktreeId);
+            const restartDir = worktree?.originalWorkingDir ?? session.workingDir;
 
             // Remove old session (cleans up worktree) and create a new one
             handleCloseSession(sessionId).then(() => {
                 handleCreateSession(session.name, restartDir, session.command ?? "");
             });
         },
-        [sessions, handleCloseSession, handleCreateSession]
+        [sessions, handleCloseSession, handleCreateSession, getWorktree]
     );
 
     const handleRenameSession = useCallback(
@@ -405,6 +480,7 @@ function App() {
                         onRestart={handleRestartSession}
                         onRename={handleRenameSession}
                         onCollapse={() => setSidebarCollapsed(true)}
+                        getWorktree={getWorktree}
                     />
                 );
 
@@ -543,6 +619,7 @@ function App() {
                                     onSelect={handleSelectSession}
                                     onNew={handleNewSession}
                                     onExpand={() => setSidebarCollapsed(false)}
+                                    getWorktree={getWorktree}
                                 />
                                 {contentElement}
                             </div>

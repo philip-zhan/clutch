@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
+import type { Worktree } from "@/lib/worktrees";
 import type { NotificationSound } from "@/lib/sounds";
 
 const STORE_FILE = "sessions.json";
 
 interface SessionStoreState {
   sessions: Session[];
+  worktrees: Worktree[];
   activeSessionId: string | null;
   sidebarPosition: SidebarPosition;
   defaultCommand: string;
@@ -20,6 +22,7 @@ interface SessionStoreState {
 
 const DEFAULT_STATE: SessionStoreState = {
   sessions: [],
+  worktrees: [],
   activeSessionId: null,
   sidebarPosition: "left",
   defaultCommand: "claude",
@@ -44,9 +47,13 @@ export function useSessionStore() {
       const store = await Store.load(STORE_FILE);
       storeRef.current = store;
 
-      // Session persistence disabled — always start fresh
+      // Sessions are ephemeral — always start fresh
       const sessions: Session[] = [];
       const activeSessionId = null;
+
+      // Worktrees persist across restarts
+      const worktrees = (await store.get<Worktree[]>("worktrees")) ?? [];
+
       const sidebarPosition =
         (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
       const defaultCommand =
@@ -67,7 +74,8 @@ export function useSessionStore() {
       if (mounted) {
         setState({
           sessions,
-          activeSessionId: sessions.length > 0 ? activeSessionId ?? null : null,
+          worktrees,
+          activeSessionId,
           sidebarPosition,
           defaultCommand,
           defaultWorkingDir,
@@ -94,7 +102,9 @@ export function useSessionStore() {
 
     const store = storeRef.current;
     const persist = async () => {
-      // Session persistence disabled — only persist settings
+      // Worktrees persist across restarts
+      await store.set("worktrees", state.worktrees);
+      // Settings persist
       await store.set("sidebarPosition", state.sidebarPosition);
       await store.set("defaultCommand", state.defaultCommand);
       await store.set("defaultWorkingDir", state.defaultWorkingDir);
@@ -184,6 +194,25 @@ export function useSessionStore() {
     }));
   }, []);
 
+  const addWorktree = useCallback((worktree: Worktree) => {
+    setState((prev) => ({
+      ...prev,
+      worktrees: [...prev.worktrees, worktree],
+    }));
+  }, []);
+
+  const removeWorktree = useCallback((worktreeId: string) => {
+    setState((prev) => ({
+      ...prev,
+      worktrees: prev.worktrees.filter((w) => w.id !== worktreeId),
+    }));
+  }, []);
+
+  const getWorktree = useCallback((worktreeId: string | undefined): Worktree | undefined => {
+    if (!worktreeId) return undefined;
+    return state.worktrees.find((w) => w.id === worktreeId);
+  }, [state.worktrees]);
+
   return {
     ...state,
     isLoaded: isLoadedRef.current,
@@ -200,5 +229,8 @@ export function useSessionStore() {
     setBranchPrefix,
     setNotificationSound,
     setActivityState,
+    addWorktree,
+    removeWorktree,
+    getWorktree,
   };
 }

@@ -119,15 +119,15 @@ pub fn session_write(
 #[tauri::command]
 pub fn setup_session_worktree(
     registry: State<'_, WorktreeRegistry>,
-    session_id: String,
+    worktree_id: String,
+    branch_name: String,
     working_dir: String,
     location: String,
-    branch_prefix: String,
 ) -> git::WorktreeSetupResult {
-    let result = git::setup_worktree_for_session(&working_dir, &session_id, &location, &branch_prefix);
+    let result = git::setup_worktree_for_session(&working_dir, &branch_name, &location);
     if let (Some(wt_path), Some(repo_path)) = (&result.worktree_path, &result.git_repo_path) {
         if let Ok(mut map) = registry.0.lock() {
-            map.insert(session_id, WorktreeInfo {
+            map.insert(worktree_id, WorktreeInfo {
                 worktree_path: wt_path.clone(),
                 git_repo_path: repo_path.clone(),
             });
@@ -139,16 +139,25 @@ pub fn setup_session_worktree(
 #[tauri::command]
 pub fn cleanup_session_worktree(
     registry: State<'_, WorktreeRegistry>,
+    worktree_id: String,
     worktree_path: String,
     git_repo_path: String,
 ) -> git::WorktreeRemoveResult {
     let result = git::remove_worktree(&git_repo_path, &worktree_path);
     if result.success {
         if let Ok(mut map) = registry.0.lock() {
-            map.retain(|_, info| info.worktree_path != worktree_path);
+            map.remove(&worktree_id);
         }
     }
     result
+}
+
+#[tauri::command]
+pub fn validate_worktrees(worktree_paths: Vec<String>) -> Vec<bool> {
+    worktree_paths
+        .iter()
+        .map(|path| git::validate_worktree_path(path))
+        .collect()
 }
 
 #[tauri::command]
@@ -185,22 +194,17 @@ pub fn get_git_branches(
     result
 }
 
-/// Clean up all active sessions — called on app exit.
+/// Clean up all active PTYs and session dirs — called on app exit.
+/// Worktrees are NOT cleaned up here; they persist for restoration on next launch.
 pub fn cleanup_all(
     pty_state: &PtyState,
     sessions_dir: &Arc<SessionsDir>,
-    worktree_registry: &WorktreeRegistry,
 ) {
     if let Ok(mut map) = pty_state.0.lock() {
         let session_ids: Vec<String> = map.keys().cloned().collect();
         map.clear();
         for id in &session_ids {
             sessions_dir.remove_session_dir(id);
-        }
-    }
-    if let Ok(mut registry) = worktree_registry.0.lock() {
-        for (_, info) in registry.drain() {
-            let _ = git::remove_worktree(&info.git_repo_path, &info.worktree_path);
         }
     }
 }
