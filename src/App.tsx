@@ -9,6 +9,8 @@ import { Sidebar } from "./components/Sidebar";
 import { Terminal } from "./components/Terminal";
 import { Settings } from "./components/Settings";
 import { UpdateDialog } from "./components/UpdateDialog";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "./components/ui/resizable";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 import { playNotificationSound } from "./lib/sounds";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -50,6 +52,9 @@ function App() {
 
     // Track which terminal components are mounted to manage destroy
     const mountedSessionsRef = useRef<Set<string>>(new Set());
+
+    // Refs for bottom panel imperative resize control
+    const panelRefs = useRef<Map<string, PanelImperativeHandle | null>>(new Map());
 
     // Ref for notification sound to avoid resetting poll interval on preference change
     const notificationSoundRef = useRef(notificationSound);
@@ -208,6 +213,7 @@ function App() {
             const next = new Set(prev);
             if (next.has(activeSessionId)) {
                 next.delete(activeSessionId);
+                panelRefs.current.get(activeSessionId)?.collapse();
             } else {
                 next.add(activeSessionId);
                 setMountedPanels((mp) => {
@@ -215,6 +221,8 @@ function App() {
                     nextMp.add(activeSessionId);
                     return nextMp;
                 });
+                // If already mounted, expand; if newly mounted, defaultSize handles it
+                panelRefs.current.get(activeSessionId)?.expand();
             }
             return next;
         });
@@ -252,6 +260,34 @@ function App() {
         const interval = setInterval(poll, 250);
         return () => clearInterval(interval);
     }, [sessions, setActivityState]);
+
+    // Poll git branches for running sessions
+    useEffect(() => {
+        const runningSessions = sessions.filter((s) => s.status === "running" && s.workingDir);
+        if (runningSessions.length === 0) return;
+
+        const poll = async () => {
+            try {
+                const sessionDirs: Record<string, string> = {};
+                for (const s of runningSessions) {
+                    sessionDirs[s.id] = s.workingDir;
+                }
+                const branches = await invoke<Record<string, string>>("get_git_branches", { sessions: sessionDirs });
+                for (const [sessionId, branch] of Object.entries(branches)) {
+                    const session = sessions.find((s) => s.id === sessionId);
+                    if (session && session.gitBranch !== branch) {
+                        updateSession(sessionId, { gitBranch: branch });
+                    }
+                }
+            } catch {
+                // Ignore poll errors
+            }
+        };
+
+        poll(); // Initial fetch
+        const interval = setInterval(poll, 5000);
+        return () => clearInterval(interval);
+    }, [sessions, updateSession]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -358,7 +394,6 @@ function App() {
                     {sessions.map((session) => {
                         const isActive = session.id === activeSessionId;
                         const isPanelMounted = mountedPanels.has(session.id);
-                        const isPanelVisible = visiblePanels.has(session.id);
 
                         return (
                             <div
@@ -370,33 +405,58 @@ function App() {
                                     overflow: "hidden",
                                 }}
                             >
-                                <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-                                    <Terminal
-                                        sessionId={session.id}
-                                        workingDir={session.workingDir}
-                                        command={session.command}
-                                        isActive={isActive}
-                                        onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
-                                    />
-                                </div>
-
-                                {isPanelMounted && (
-                                    <div
-                                        className="border-t border-border"
-                                        style={{
-                                            display: isPanelVisible ? "flex" : "none",
-                                            height: 300,
-                                            minHeight: 100,
-                                            overflow: "hidden",
-                                        }}
-                                    >
+                                <ResizablePanelGroup orientation="vertical">
+                                    <ResizablePanel minSize={20}>
                                         <Terminal
-                                            sessionId={`${session.id}_panel`}
+                                            sessionId={session.id}
                                             workingDir={session.workingDir}
-                                            isActive={isActive && isPanelVisible}
+                                            command={session.command}
+                                            isActive={isActive}
+                                            onStatusChange={(status) => handleSessionStatusChange(session.id, status)}
                                         />
-                                    </div>
-                                )}
+                                    </ResizablePanel>
+
+                                    {isPanelMounted && (
+                                        <>
+                                            <ResizableHandle />
+                                            <ResizablePanel
+                                                panelRef={(handle) => {
+                                                    if (handle) {
+                                                        panelRefs.current.set(session.id, handle);
+                                                    } else {
+                                                        panelRefs.current.delete(session.id);
+                                                    }
+                                                }}
+                                                collapsible
+                                                defaultSize={30}
+                                                minSize={10}
+                                                onResize={(panelSize) => {
+                                                    const isCollapsed = panelSize.asPercentage === 0;
+                                                    setVisiblePanels((prev) => {
+                                                        const wasVisible = prev.has(session.id);
+                                                        if (isCollapsed && wasVisible) {
+                                                            const next = new Set(prev);
+                                                            next.delete(session.id);
+                                                            return next;
+                                                        }
+                                                        if (!isCollapsed && !wasVisible) {
+                                                            const next = new Set(prev);
+                                                            next.add(session.id);
+                                                            return next;
+                                                        }
+                                                        return prev;
+                                                    });
+                                                }}
+                                            >
+                                                <Terminal
+                                                    sessionId={`${session.id}_panel`}
+                                                    workingDir={session.workingDir}
+                                                    isActive={isActive && visiblePanels.has(session.id)}
+                                                />
+                                            </ResizablePanel>
+                                        </>
+                                    )}
+                                </ResizablePanelGroup>
                             </div>
                         );
                     })}
