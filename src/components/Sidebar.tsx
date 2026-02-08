@@ -104,7 +104,7 @@ function VerticalSidebar({
   return (
     <div
       className="flex flex-col border-r border-border bg-surface/50"
-      style={{ width: 220, minWidth: 220 }}
+      style={{ width: "100%", height: "100%" }}
     >
       <div
         className="flex items-center border-b border-border"
