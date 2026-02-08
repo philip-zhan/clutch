@@ -14,6 +14,14 @@ impl SessionsDir {
         let path = PathBuf::from(home).join(".clutch").join("sessions");
         std::fs::create_dir_all(&path)
             .map_err(|e| format!("Failed to create sessions dir: {}", e))?;
+
+        // Clean up any stale session dirs from previous runs (crash recovery)
+        if let Ok(entries) = std::fs::read_dir(&path) {
+            for entry in entries.flatten() {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
+        }
+
         Ok(Self { path })
     }
 
