@@ -66,7 +66,8 @@ pub fn create_worktree(
             let home = std::env::var("HOME")
                 .map_err(|_| "Cannot determine home directory".to_string())?;
             Path::new(&home)
-                .join(".claude-worktrees")
+                .join(".clutch")
+                .join("worktrees")
                 .join(repo_name)
                 .join(&folder_name)
                 .to_string_lossy()
