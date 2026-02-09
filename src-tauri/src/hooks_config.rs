@@ -1,3 +1,4 @@
+use crate::config;
 use serde_json::{json, Value};
 use std::path::PathBuf;
 
@@ -6,23 +7,12 @@ fn claude_settings_path() -> Option<PathBuf> {
     Some(PathBuf::from(home).join(".claude").join("settings.json"))
 }
 
-const PROMPT_SUBMIT_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "UserPromptSubmit"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
-
-const STOP_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Stop"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
-
-const NOTIFY_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Notification"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
-
-const PRE_TOOL_USE_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PreToolUse"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
-
-const PERMISSION_REQUEST_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PermissionRequest"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
-
-const TASK_COMPLETED_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "TaskCompleted"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+fn hook_command(event_name: &str) -> String {
+    let base = config::base_dir_name();
+    format!(
+        r#"f="$HOME/{base}/sessions/$CLUTCH_SESSION_ID/status"; {{ echo "{event_name}"; cat "$f" 2>/dev/null; }} > "$f.tmp" && mv "$f.tmp" "$f""#
+    )
+}
 
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
@@ -56,23 +46,17 @@ pub fn ensure_hooks() {
         None => return,
     };
 
-    // --- UserPromptSubmit hook ---
-    ensure_hook_entry(hooks_obj, "UserPromptSubmit", PROMPT_SUBMIT_HOOK);
-
-    // --- Stop hook ---
-    ensure_hook_entry(hooks_obj, "Stop", STOP_HOOK);
-
-    // --- Notification hook ---
-    ensure_hook_entry(hooks_obj, "Notification", NOTIFY_HOOK);
-
-    // --- PreToolUse hook ---
-    ensure_hook_entry(hooks_obj, "PreToolUse", PRE_TOOL_USE_HOOK);
-
-    // --- PermissionRequest hook ---
-    ensure_hook_entry(hooks_obj, "PermissionRequest", PERMISSION_REQUEST_HOOK);
-
-    // --- TaskCompleted hook ---
-    ensure_hook_entry(hooks_obj, "TaskCompleted", TASK_COMPLETED_HOOK);
+    let events = [
+        "UserPromptSubmit",
+        "Stop",
+        "Notification",
+        "PreToolUse",
+        "PermissionRequest",
+        "TaskCompleted",
+    ];
+    for event in events {
+        ensure_hook_entry(hooks_obj, event, &hook_command(event));
+    }
 
     if let Ok(formatted) = serde_json::to_string_pretty(&settings) {
         let _ = std::fs::write(&settings_path, formatted);
