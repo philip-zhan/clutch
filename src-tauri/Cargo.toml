@@ -1,5 +1,5 @@
 [package]
-name = "clutch-desktop"
+name = "clutch"
 version = "0.1.0"
 description = "Multi-session Claude Code UI"
 authors = ["you"]

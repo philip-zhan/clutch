@@ -41,7 +41,10 @@ export function useUpdater(): UseUpdaterResult {
 	statusRef.current = state.status;
 
 	const checkForUpdates = useCallback(async () => {
-		if (statusRef.current === "checking" || statusRef.current === "downloading") {
+		if (
+			statusRef.current === "checking" ||
+			statusRef.current === "downloading"
+		) {
 			return;
 		}
 
@@ -128,15 +131,18 @@ export function useUpdater(): UseUpdaterResult {
 		updateRef.current = null;
 	}, []);
 
-	// Auto-check on startup + every 30 minutes
+	// Auto-check on startup + every 10 minutes
 	useEffect(() => {
 		const initialTimer = setTimeout(() => {
 			checkForUpdates();
 		}, 3000);
 
-		const interval = setInterval(() => {
-			checkForUpdates();
-		}, 30 * 60 * 1000);
+		const interval = setInterval(
+			() => {
+				checkForUpdates();
+			},
+			10 * 60 * 1000,
+		);
 
 		return () => {
 			clearTimeout(initialTimer);
