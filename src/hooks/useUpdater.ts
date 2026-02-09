@@ -37,9 +37,11 @@ export function useUpdater(): UseUpdaterResult {
 	});
 
 	const updateRef = useRef<Update | null>(null);
+	const statusRef = useRef(state.status);
+	statusRef.current = state.status;
 
 	const checkForUpdates = useCallback(async () => {
-		if (state.status === "checking" || state.status === "downloading") {
+		if (statusRef.current === "checking" || statusRef.current === "downloading") {
 			return;
 		}
 
@@ -73,7 +75,7 @@ export function useUpdater(): UseUpdaterResult {
 					err instanceof Error ? err.message : "Failed to check for updates",
 			}));
 		}
-	}, [state.status]);
+	}, []);
 
 	const downloadAndInstall = useCallback(async () => {
 		const update = updateRef.current;
