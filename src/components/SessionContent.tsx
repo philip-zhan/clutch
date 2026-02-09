@@ -67,7 +67,7 @@ export function SessionContent({
                                             }
                                         }}
                                         collapsible
-                                        defaultSize={300}
+                                        defaultSize={400}
                                         minSize={100}
                                         style={{ backgroundColor: "#0c0c0e" }}
                                         onResize={(panelSize) => {
