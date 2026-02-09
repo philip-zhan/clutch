@@ -80,9 +80,9 @@ function App() {
         isSettingsOpen,
     });
 
-    if (isSettingsOpen) {
-        return (
-            <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+    return (
+        <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+            {isSettingsOpen && (
                 <Settings
                     onBack={() => setIsSettingsOpen(false)}
                     sidebarPosition={sidebarPosition}
@@ -100,58 +100,56 @@ function App() {
                     updater={updater}
                     activeSessionId={activeSessionId}
                 />
-            </main>
-        );
-    }
+            )}
 
-    return (
-        <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-            <TitleBar
-                onSettingsClick={() => setIsSettingsOpen(true)}
-                onTogglePanel={handleTogglePanel}
-                isPanelVisible={activeSessionId ? visiblePanels.has(activeSessionId) : false}
-            />
-
-            <AppLayout
-                sidebarPosition={sidebarPosition}
-                sidebarCollapsed={sidebarCollapsed}
-                sidebar={
-                    <Sidebar
-                        sessions={sessions}
-                        activeSessionId={activeSessionId}
-                        position={sidebarPosition}
-                        onSelect={handleSelectSession}
-                        onNew={handleNewSession}
-                        onClose={handleCloseSession}
-                        onRestart={handleRestartSession}
-                        onRename={handleRenameSession}
-                        onCollapse={() => setSidebarCollapsed(true)}
-                        getPersistedTab={getPersistedTab}
-                    />
-                }
-                collapsedSidebar={
-                    <CollapsedSidebar
-                        getPersistedTab={getPersistedTab}
-                        sessions={sessions}
-                        activeSessionId={activeSessionId}
-                        position={sidebarPosition as "left" | "right"}
-                        onSelect={handleSelectSession}
-                        onNew={handleNewSession}
-                        onExpand={() => setSidebarCollapsed(false)}
-                    />
-                }
-            >
-                <SessionContent
-                    sessions={sessions}
-                    activeSessionId={activeSessionId}
-                    mountedPanels={mountedPanels}
-                    visiblePanels={visiblePanels}
-                    setVisiblePanels={setVisiblePanels}
-                    panelRefs={panelRefs}
-                    onStatusChange={handleSessionStatusChange}
-                    onNewSession={handleNewSession}
+            <div style={{ display: isSettingsOpen ? "none" : "contents" }}>
+                <TitleBar
+                    onSettingsClick={() => setIsSettingsOpen(true)}
+                    onTogglePanel={handleTogglePanel}
+                    isPanelVisible={activeSessionId ? visiblePanels.has(activeSessionId) : false}
                 />
-            </AppLayout>
+
+                <AppLayout
+                    sidebarPosition={sidebarPosition}
+                    sidebarCollapsed={sidebarCollapsed}
+                    sidebar={
+                        <Sidebar
+                            sessions={sessions}
+                            activeSessionId={activeSessionId}
+                            position={sidebarPosition}
+                            onSelect={handleSelectSession}
+                            onNew={handleNewSession}
+                            onClose={handleCloseSession}
+                            onRestart={handleRestartSession}
+                            onRename={handleRenameSession}
+                            onCollapse={() => setSidebarCollapsed(true)}
+                            getPersistedTab={getPersistedTab}
+                        />
+                    }
+                    collapsedSidebar={
+                        <CollapsedSidebar
+                            getPersistedTab={getPersistedTab}
+                            sessions={sessions}
+                            activeSessionId={activeSessionId}
+                            position={sidebarPosition as "left" | "right"}
+                            onSelect={handleSelectSession}
+                            onNew={handleNewSession}
+                            onExpand={() => setSidebarCollapsed(false)}
+                        />
+                    }
+                >
+                    <SessionContent
+                        sessions={sessions}
+                        activeSessionId={activeSessionId}
+                        mountedPanels={mountedPanels}
+                        visiblePanels={visiblePanels}
+                        setVisiblePanels={setVisiblePanels}
+                        panelRefs={panelRefs}
+                        onStatusChange={handleSessionStatusChange}
+                        onNewSession={handleNewSession}
+                    />
+                </AppLayout>
+            </div>
 
             <UpdateDialog
                 state={updater}
