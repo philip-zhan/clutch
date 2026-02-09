@@ -14,7 +14,6 @@ A desktop app for running multiple [Claude Code](https://docs.anthropic.com/en/d
 - 🌳 **Auto worktrees** — Each session gets its own git worktree and branch, auto-created and cleaned up
 - 🔴 **Live status** — Color-coded indicators show if Claude is working, finished, waiting for input, or idle
 - 🔔 **Notifications** — Audio alerts when Claude needs your attention, with multiple sound options
-- 🔍 **Terminal search** — Find text in terminal output with regex and case-sensitive matching
 - ⚙️ **Configurable** — Default command, working directory, sidebar position, branch prefixes, and more
 
 ## Keyboard Shortcuts
