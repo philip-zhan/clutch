@@ -10,34 +10,12 @@ A desktop app for running multiple [Claude Code](https://docs.anthropic.com/en/d
 
 ## Features
 
-### Multi-Session Workflow
-
-Run as many Claude Code sessions as you need, each in its own tab with a full terminal. Switch between them instantly. Sessions persist across app restarts so you never lose your place.
-
-### Automatic Git Worktree Management
-
-Every new session can get its own isolated git worktree and branch, so parallel tasks never collide. Worktrees are created automatically and cleaned up when you close a tab. Branch names are auto-generated (e.g. `brave-blue-falcon`) with optional custom prefixes.
-
-### Live Activity Indicators
-
-See at a glance what each session is doing:
-
-- **Blue (pulsing)** -- Claude is working
-- **Green** -- Task finished
-- **Orange (pulsing)** -- Claude needs your input
-- **Gray** -- Idle
-
-### Notifications
-
-Get audio alerts when Claude needs attention. Choose from multiple notification sounds (chime, bell, pulse, soft) or turn them off entirely.
-
-### Terminal Search
-
-Search terminal output with `Cmd+F`. Supports regex and case-sensitive matching with highlighted results.
-
-### Customizable Settings
-
-Configure the default command, working directory, sidebar position, worktree behavior, branch prefixes, and notification sounds.
+- 🧠 **Multi-session** — Run parallel Claude Code sessions in tabs that persist across restarts
+- 🌳 **Auto worktrees** — Each session gets its own git worktree and branch, auto-created and cleaned up
+- 🔴 **Live status** — Color-coded indicators show if Claude is working, finished, waiting for input, or idle
+- 🔔 **Notifications** — Audio alerts when Claude needs your attention, with multiple sound options
+- 🔍 **Terminal search** — Find text in terminal output with regex and case-sensitive matching
+- ⚙️ **Configurable** — Default command, working directory, sidebar position, branch prefixes, and more
 
 ## Keyboard Shortcuts
 
