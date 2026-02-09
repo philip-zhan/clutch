@@ -10,7 +10,7 @@ fn claude_settings_path() -> Option<PathBuf> {
 fn hook_command(event_name: &str) -> String {
     let base = config::base_dir_name();
     format!(
-        r#"f="$HOME/{base}/sessions/$CLUTCH_SESSION_ID/status"; {{ echo "{event_name}"; cat "$f" 2>/dev/null; }} > "$f.tmp" && mv "$f.tmp" "$f""#
+        r#"f="$HOME/{base}/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "{event_name}"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#
     )
 }
 
