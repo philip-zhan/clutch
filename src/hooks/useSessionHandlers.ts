@@ -49,7 +49,13 @@ export function useSessionHandlers({
             let gitRepoPath: string | undefined;
             let originalWorkingDir: string | undefined;
 
-            if (worktreeEnabled && workingDir && sessions.length > 0) {
+            const hasExistingSessionForRepo = sessions.some(
+                (s) =>
+                    s.originalWorkingDir === workingDir ||
+                    (!s.worktreePath && s.workingDir === workingDir)
+            );
+
+            if (worktreeEnabled && workingDir && hasExistingSessionForRepo) {
                 try {
                     const branchName = branchPrefix + generateBranchName();
                     const result = await invoke<{
@@ -87,7 +93,7 @@ export function useSessionHandlers({
             };
             addSession(session);
         },
-        [addSession, sessions.length, worktreeEnabled, branchPrefix]
+        [addSession, sessions, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
