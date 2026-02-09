@@ -28,6 +28,7 @@ export function Terminal({
   backgroundColor = "#000000",
   showGradient = true,
 }: TerminalProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -76,6 +77,9 @@ export function Terminal({
     if (!isActive) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if this terminal (or its search bar) contains focus
+      if (!wrapperRef.current?.contains(document.activeElement)) return;
+
       if (e.metaKey && e.key === "f") {
         e.preventDefault();
         e.stopPropagation();
@@ -229,7 +233,7 @@ export function Terminal({
   );
 
   return (
-    <div style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%", backgroundColor }}>
+    <div ref={wrapperRef} style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%", backgroundColor }}>
       <div
         ref={containerRef}
         className={`terminal-wrapper h-full w-full flex-1${showGradient ? "" : " no-gradient"}`}
