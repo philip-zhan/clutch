@@ -114,6 +114,8 @@ button, a, input {
 
 .terminal-wrapper .xterm {
   height: 100%;
+  letter-spacing: normal;
+  font-feature-settings: normal;
 }
 
 .terminal-wrapper .xterm .xterm-viewport {
