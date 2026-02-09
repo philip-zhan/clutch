@@ -21,18 +21,18 @@ interface SidebarProps {
 
 function getActivityDot(session: Session): { color: string; animation?: string } {
   if (session.status === "exited") {
-    return { color: "#52525b" };
+    return { color: "transparent" };
   }
   switch (session.activityState) {
     case "running":
-      return { color: "#3b82f6", animation: "pulse-running 2s ease-in-out infinite" };
+      return { color: "#22c55e", animation: "pulse-green 2s ease-in-out infinite" };
     case "finished":
-      return { color: "#10b981" };
+      return { color: "#22c55e" };
     case "needs_input":
-      return { color: "#f59e0b", animation: "pulse-attention 1.5s ease-in-out infinite" };
+      return { color: "#ef4444" };
     case "idling":
     default:
-      return { color: "#52525b" };
+      return { color: "transparent" };
   }
 }
 
