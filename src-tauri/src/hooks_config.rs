@@ -7,22 +7,22 @@ fn claude_settings_path() -> Option<PathBuf> {
 }
 
 const PROMPT_SUBMIT_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "UserPromptSubmit"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "UserPromptSubmit"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 const STOP_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Stop"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "Stop"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 const NOTIFY_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "Notification"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "Notification"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 const PRE_TOOL_USE_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PreToolUse"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "PreToolUse"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 const PERMISSION_REQUEST_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "PermissionRequest"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "PermissionRequest"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 const TASK_COMPLETED_HOOK: &str =
-    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; { echo "TaskCompleted"; cat "$f" 2>/dev/null; } > "$f.tmp" && mv "$f.tmp" "$f""#;
+    r#"f="$HOME/.clutch/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; { echo "TaskCompleted"; cat "$f" 2>/dev/null; } > "$t" && mv "$t" "$f""#;
 
 pub fn ensure_hooks() {
     eprintln!("[clutch:hooks] ensuring hooks are configured");
