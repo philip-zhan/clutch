@@ -60,8 +60,7 @@ const CONCEPTS = [
   {
     icon: TerminalSquare,
     title: "Built-in Terminal",
-    description:
-      "Full terminal with search, split panels, and clickable links.",
+    description: "Full terminal with search, split panels, and clickable links.",
     hint: (
       <span className="flex items-center" style={{ gap: 8 }}>
         <Kbd>⌘F</Kbd> <span>search</span>
@@ -79,10 +78,7 @@ export function Onboarding({
   const [step, setStep] = useState(0);
 
   return (
-    <div
-      className="flex flex-col h-full w-full bg-surface"
-      style={{ overflow: "hidden" }}
-    >
+    <div className="flex flex-col h-full w-full bg-surface" style={{ overflow: "hidden" }}>
       {/* Drag region header */}
       <div
         data-tauri-drag-region
@@ -96,10 +92,7 @@ export function Onboarding({
           {step === 0 ? (
             <WelcomeScreen />
           ) : (
-            <WorkingDirScreen
-              value={defaultWorkingDir}
-              onChange={onDefaultWorkingDirChange}
-            />
+            <WorkingDirScreen value={defaultWorkingDir} onChange={onDefaultWorkingDirChange} />
           )}
         </div>
       </div>
@@ -112,11 +105,7 @@ export function Onboarding({
         <StepDots current={step} total={2} />
         <div className="flex" style={{ gap: 8 }}>
           {step > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setStep(step - 1)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setStep(step - 1)}>
               Back
             </Button>
           )}
@@ -138,10 +127,7 @@ export function Onboarding({
 function WelcomeScreen() {
   return (
     <>
-      <h1
-        className="text-2xl font-semibold text-foreground"
-        style={{ marginBottom: 6 }}
-      >
+      <h1 className="text-2xl font-semibold text-foreground" style={{ marginBottom: 6 }}>
         Welcome to Clutch
       </h1>
       <p className="text-sm text-foreground-muted" style={{ marginBottom: 32 }}>
@@ -151,21 +137,13 @@ function WelcomeScreen() {
       <div>
         {CONCEPTS.map((c, i) => (
           <div key={c.title}>
-            {i > 0 && (
-              <div
-                className="border-t border-border"
-                style={{ marginLeft: 37 }}
-              />
-            )}
+            {i > 0 && <div className="border-t border-border" style={{ marginLeft: 37 }} />}
             <div className="flex" style={{ gap: 16, padding: "24px 0" }}>
               <div style={{ paddingTop: 3 }}>
                 <c.icon className="h-5 w-5 text-foreground-muted" />
               </div>
               <div>
-                <p
-                  className="text-base font-medium text-foreground"
-                  style={{ marginBottom: 6 }}
-                >
+                <p className="text-base font-medium text-foreground" style={{ marginBottom: 6 }}>
                   {c.title}
                 </p>
                 <p
@@ -184,34 +162,17 @@ function WelcomeScreen() {
   );
 }
 
-function WorkingDirScreen({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (dir: string) => void;
-}) {
+function WorkingDirScreen({ value, onChange }: { value: string; onChange: (dir: string) => void }) {
   return (
     <>
-      <h1
-        className="text-2xl font-semibold text-foreground"
-        style={{ marginBottom: 8 }}
-      >
+      <h1 className="text-2xl font-semibold text-foreground" style={{ marginBottom: 8 }}>
         Working Directory
       </h1>
-      <p
-        className="text-base text-foreground-muted"
-        style={{ marginBottom: 28 }}
-      >
-        Choose where new sessions start. You can always change this later in
-        Settings.
+      <p className="text-base text-foreground-muted" style={{ marginBottom: 28 }}>
+        Choose where new sessions start. You can always change this later in Settings.
       </p>
 
-      <WorkingDirectoryInput
-        showHeader={false}
-        value={value}
-        onChange={onChange}
-      />
+      <WorkingDirectoryInput showHeader={false} value={value} onChange={onChange} />
     </>
   );
 }

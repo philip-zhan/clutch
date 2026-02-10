@@ -45,17 +45,10 @@ export function useSessionHandlers({
   const mountedSessionsRef = useRef<Set<string>>(new Set());
 
   // Refs for bottom panel imperative resize control
-  const panelRefs = useRef<Map<string, PanelImperativeHandle | null>>(
-    new Map(),
-  );
+  const panelRefs = useRef<Map<string, PanelImperativeHandle | null>>(new Map());
 
   const handleCreateSession = useCallback(
-    async (
-      name: string,
-      workingDir: string,
-      command: string,
-      skipWorktree = false,
-    ) => {
+    async (name: string, workingDir: string, command: string, skipWorktree = false) => {
       // Single ID used for both Session.id and PersistedTab.id.
       // Stable across restarts so CLUTCH_SESSION_ID and status dirs survive.
       const id = nanoid();
@@ -66,16 +59,10 @@ export function useSessionHandlers({
 
       const hasExistingSessionForRepo = sessions.some(
         (s) =>
-          s.originalWorkingDir === workingDir ||
-          (!s.worktreePath && s.workingDir === workingDir),
+          s.originalWorkingDir === workingDir || (!s.worktreePath && s.workingDir === workingDir),
       );
 
-      if (
-        !skipWorktree &&
-        worktreeEnabled &&
-        workingDir &&
-        hasExistingSessionForRepo
-      ) {
+      if (!skipWorktree && worktreeEnabled && workingDir && hasExistingSessionForRepo) {
         try {
           const branchName = branchPrefix + generateBranchName();
           const result = await invoke<{

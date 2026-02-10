@@ -14,7 +14,6 @@ export const UPDATE_CHECK_DELAY = 3_000;
 export const UPDATE_CHECK_INTERVAL = 30 * 60 * 1_000;
 
 // Terminal
-export const TERMINAL_FONT_FAMILY =
-  "'SF Mono', 'JetBrains Mono', Menlo, Monaco, monospace";
+export const TERMINAL_FONT_FAMILY = "'SF Mono', 'JetBrains Mono', Menlo, Monaco, monospace";
 export const TERMINAL_FONT_SIZE = 13;
 export const TERMINAL_LINE_HEIGHT = 1.35;

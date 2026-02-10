@@ -6,14 +6,7 @@ import type { UseUpdaterResult } from "./useUpdater";
 const TOAST_ID = "app-update";
 
 export function useUpdateToast(updater: UseUpdaterResult) {
-  const {
-    status,
-    progress,
-    updateInfo,
-    error,
-    downloadAndInstall,
-    dismissUpdate,
-  } = updater;
+  const { status, progress, updateInfo, error, downloadAndInstall, dismissUpdate } = updater;
   const prevStatus = useRef(status);
 
   useEffect(() => {

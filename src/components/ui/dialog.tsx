@@ -23,10 +23,7 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ padding: 16 }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ padding: 16 }}>
       <div
         data-tauri-drag-region
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
@@ -39,38 +36,33 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   );
 };
 
-const DialogContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "relative z-50 rounded-xl border border-border bg-surface p-0 shadow-lg",
-      "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200",
-      className,
-    )}
-    style={{
-      boxShadow:
-        "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03) inset",
-    }}
-    {...props}
-  >
+const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => (
     <div
-      className="absolute inset-x-0 top-0 h-px"
+      ref={ref}
+      className={cn(
+        "relative z-50 rounded-xl border border-border bg-surface p-0 shadow-lg",
+        "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200",
+        className,
+      )}
       style={{
-        background: "rgba(255,255,255,0.08)",
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03) inset",
       }}
-    />
-    {children}
-  </div>
-));
+      {...props}
+    >
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{
+          background: "rgba(255,255,255,0.08)",
+        }}
+      />
+      {children}
+    </div>
+  ),
+);
 DialogContent.displayName = "DialogContent";
 
-const DialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(className)}
     style={{
@@ -83,19 +75,15 @@ const DialogHeader = ({
   />
 );
 
-const DialogTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h2
-    ref={ref}
-    className={cn(
-      "text-lg font-semibold tracking-tight text-foreground",
-      className,
-    )}
-    {...props}
-  />
-));
+const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h2
+      ref={ref}
+      className={cn("text-lg font-semibold tracking-tight text-foreground", className)}
+      {...props}
+    />
+  ),
+);
 DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
@@ -104,19 +92,13 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn(
-      "mt-1.5 text-sm text-foreground-muted leading-relaxed",
-      className,
-    )}
+    className={cn("mt-1.5 text-sm text-foreground-muted leading-relaxed", className)}
     {...props}
   />
 ));
 DialogDescription.displayName = "DialogDescription";
 
-const DialogBody = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+const DialogBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(className)}
     style={{
@@ -129,10 +111,7 @@ const DialogBody = ({
   />
 );
 
-const DialogFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
       "flex items-center justify-end border-t border-border-subtle bg-surface-elevated/50 rounded-b-xl",
@@ -149,8 +128,7 @@ const DialogFooter = ({
   />
 );
 
-interface DialogCloseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+interface DialogCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 
 const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
   ({ className, ...props }, ref) => (
@@ -158,10 +136,7 @@ const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn(
-        "absolute text-foreground-subtle hover:text-foreground",
-        className,
-      )}
+      className={cn("absolute text-foreground-subtle hover:text-foreground", className)}
       style={{ right: 16, top: 16, width: 32, height: 32 }}
       {...props}
     >

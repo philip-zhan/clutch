@@ -34,9 +34,7 @@ export function UpdateToast({
   onDismiss,
 }: UpdateToastProps) {
   const descriptions: Record<string, string> = {
-    available: version
-      ? `Version ${version} is available`
-      : "A new version is available",
+    available: version ? `Version ${version} is available` : "A new version is available",
     downloading: `Downloading${version ? ` v${version}` : ""}… ${progress}%`,
     ready: "Restart to apply the update",
     error: error || "An error occurred while updating",
@@ -50,12 +48,8 @@ export function UpdateToast({
       <div className="flex items-center" style={{ gap: 8 }}>
         {icons[status]}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p className="text-sm font-medium text-foreground">
-            {titles[status]}
-          </p>
-          <p className="text-xs text-foreground-muted truncate">
-            {descriptions[status]}
-          </p>
+          <p className="text-sm font-medium text-foreground">{titles[status]}</p>
+          <p className="text-xs text-foreground-muted truncate">{descriptions[status]}</p>
         </div>
       </div>
 

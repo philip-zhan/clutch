@@ -1,18 +1,9 @@
-import {
-  adjectives,
-  animals,
-  colors,
-  uniqueNamesGenerator,
-} from "unique-names-generator";
+import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
 import type { PersistedTab } from "./persisted-tabs";
 
 export type SessionStatus = "running" | "exited";
 
-export type ClaudeActivityState =
-  | "idling"
-  | "running"
-  | "finished"
-  | "needs_input";
+export type ClaudeActivityState = "idling" | "running" | "finished" | "needs_input";
 
 export type SidebarPosition = "left" | "right" | "top" | "bottom";
 
@@ -40,16 +31,10 @@ export function generateBranchName(): string {
   });
 }
 
-export function sessionDisplayName(
-  session: Session,
-  tab?: PersistedTab,
-): string {
+export function sessionDisplayName(session: Session, tab?: PersistedTab): string {
   if (session.name) return session.name;
   const dir =
-    session.gitRepoPath ||
-    tab?.gitRepoPath ||
-    tab?.originalWorkingDir ||
-    session.workingDir;
+    session.gitRepoPath || tab?.gitRepoPath || tab?.originalWorkingDir || session.workingDir;
   if (dir) {
     const parts = dir.split("/");
     return parts[parts.length - 1] || dir;

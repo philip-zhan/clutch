@@ -1,11 +1,4 @@
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  GitBranch,
-  Plus,
-  RotateCw,
-  X,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, GitBranch, Plus, RotateCw, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { PersistedTab } from "@/lib/persisted-tabs";
@@ -114,9 +107,7 @@ function VerticalSidebar({
 
   const handleDoubleClick = (session: Session) => {
     setEditingId(session.id);
-    setEditValue(
-      session.name || sessionDisplayName(session, getPersistedTab(session.id)),
-    );
+    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.id)));
   };
 
   const commitRename = () => {
@@ -207,9 +198,7 @@ function VerticalSidebar({
                           maxWidth: "100%",
                         }}
                       >
-                        <GitBranch
-                          style={{ width: 11, height: 11, flexShrink: 0 }}
-                        />
+                        <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
                         <span className="truncate">{session.gitBranch}</span>
                       </div>
                     )}
@@ -279,12 +268,7 @@ function HorizontalSidebar({
   getPersistedTab,
 }: Pick<
   SidebarProps,
-  | "sessions"
-  | "activeSessionId"
-  | "onSelect"
-  | "onNew"
-  | "onClose"
-  | "getPersistedTab"
+  "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose" | "getPersistedTab"
 >) {
   return (
     <div
@@ -388,9 +372,7 @@ export function CollapsedSidebar({
     <div
       className={cn(
         "flex flex-col bg-surface/50",
-        position === "left"
-          ? "border-r border-border"
-          : "border-l border-border",
+        position === "left" ? "border-r border-border" : "border-l border-border",
       )}
       style={{ width: 44, height: "100%", flexShrink: 0 }}
     >
@@ -406,11 +388,7 @@ export function CollapsedSidebar({
           onClick={onExpand}
           title="Expand sidebar (⌘B)"
         >
-          {position === "left" ? (
-            <ChevronsRight size={16} />
-          ) : (
-            <ChevronsLeft size={16} />
-          )}
+          {position === "left" ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
         </Button>
       </div>
 
@@ -449,10 +427,7 @@ export function CollapsedSidebar({
         })}
       </div>
 
-      <div
-        className="border-t border-border flex justify-center"
-        style={{ padding: 6 }}
-      >
+      <div className="border-t border-border flex justify-center" style={{ padding: 6 }}>
         <Button
           variant="ghost"
           size="icon"

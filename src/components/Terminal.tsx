@@ -8,11 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePty } from "../hooks/usePty";
 import { TerminalSearchBar } from "./TerminalSearchBar";
 import "@xterm/xterm/css/xterm.css";
-import {
-  TERMINAL_FONT_FAMILY,
-  TERMINAL_FONT_SIZE,
-  TERMINAL_LINE_HEIGHT,
-} from "../lib/config";
+import { TERMINAL_FONT_FAMILY, TERMINAL_FONT_SIZE, TERMINAL_LINE_HEIGHT } from "../lib/config";
 
 export interface TerminalProps {
   sessionId: string;
@@ -92,24 +88,13 @@ export function Terminal({
         return;
       }
 
-      if (
-        e.metaKey &&
-        e.key === "g" &&
-        isSearchOpen &&
-        searchAddonRef.current
-      ) {
+      if (e.metaKey && e.key === "g" && isSearchOpen && searchAddonRef.current) {
         e.preventDefault();
         e.stopPropagation();
         if (e.shiftKey) {
-          searchAddonRef.current.findPrevious(
-            searchQueryRef.current,
-            searchOptionsRef.current,
-          );
+          searchAddonRef.current.findPrevious(searchQueryRef.current, searchOptionsRef.current);
         } else {
-          searchAddonRef.current.findNext(
-            searchQueryRef.current,
-            searchOptionsRef.current,
-          );
+          searchAddonRef.current.findNext(searchQueryRef.current, searchOptionsRef.current);
         }
       }
     };
@@ -240,13 +225,10 @@ export function Terminal({
     terminalRef.current?.focus();
   }, []);
 
-  const handleSearchChange = useCallback(
-    (query: string, options: ISearchOptions) => {
-      searchQueryRef.current = query;
-      searchOptionsRef.current = options;
-    },
-    [],
-  );
+  const handleSearchChange = useCallback((query: string, options: ISearchOptions) => {
+    searchQueryRef.current = query;
+    searchOptionsRef.current = options;
+  }, []);
 
   return (
     <div

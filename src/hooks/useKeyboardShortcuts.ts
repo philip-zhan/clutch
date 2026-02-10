@@ -96,11 +96,8 @@ export function useKeyboardShortcuts({
       if (e.key === "[" && e.shiftKey) {
         e.preventDefault();
         if (sessions.length > 1 && activeSessionId) {
-          const currentIndex = sessions.findIndex(
-            (s) => s.id === activeSessionId,
-          );
-          const prevIndex =
-            (currentIndex - 1 + sessions.length) % sessions.length;
+          const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
+          const prevIndex = (currentIndex - 1 + sessions.length) % sessions.length;
           onSelectSession(sessions[prevIndex].id);
         }
         return;
@@ -110,9 +107,7 @@ export function useKeyboardShortcuts({
       if (e.key === "]" && e.shiftKey) {
         e.preventDefault();
         if (sessions.length > 1 && activeSessionId) {
-          const currentIndex = sessions.findIndex(
-            (s) => s.id === activeSessionId,
-          );
+          const currentIndex = sessions.findIndex((s) => s.id === activeSessionId);
           const nextIndex = (currentIndex + 1) % sessions.length;
           onSelectSession(sessions[nextIndex].id);
         }

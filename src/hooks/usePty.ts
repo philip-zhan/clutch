@@ -40,23 +40,17 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
       unlistenData.current?.();
       unlistenExit.current?.();
 
-      unlistenData.current = await listen<PtyDataPayload>(
-        "pty-data",
-        (event) => {
-          if (mounted && event.payload.session_id === sessionId) {
-            onDataRef.current(event.payload.data);
-          }
-        },
-      );
+      unlistenData.current = await listen<PtyDataPayload>("pty-data", (event) => {
+        if (mounted && event.payload.session_id === sessionId) {
+          onDataRef.current(event.payload.data);
+        }
+      });
 
-      unlistenExit.current = await listen<PtyExitPayload>(
-        "pty-exit",
-        (event) => {
-          if (mounted && event.payload.session_id === sessionId) {
-            onExitRef.current();
-          }
-        },
-      );
+      unlistenExit.current = await listen<PtyExitPayload>("pty-exit", (event) => {
+        if (mounted && event.payload.session_id === sessionId) {
+          onExitRef.current();
+        }
+      });
     };
 
     setupListeners();
@@ -69,12 +63,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
   }, [sessionId]);
 
   const spawn = useCallback(
-    async (
-      cols: number,
-      rows: number,
-      workingDir?: string,
-      command?: string,
-    ) => {
+    async (cols: number, rows: number, workingDir?: string, command?: string) => {
       if (isSpawned.current) return;
       isSpawned.current = true;
       lastSpawnArgs.current = { cols, rows, workingDir, command };

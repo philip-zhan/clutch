@@ -87,19 +87,14 @@ function App() {
     onNewSessionWithoutWorktree: handleNewSessionWithoutWorktree,
     onCloseSession: handleCloseSession,
     onTogglePanel: handleTogglePanel,
-    onToggleSidebar: useCallback(
-      () => setSidebarCollapsed((prev) => !prev),
-      [],
-    ),
+    onToggleSidebar: useCallback(() => setSidebarCollapsed((prev) => !prev), []),
     onToggleSettings: useCallback(() => setIsSettingsOpen((prev) => !prev), []),
     isSettingsOpen,
   });
 
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const showOnboarding =
-    !onboardingDismissed &&
-    (DEBUG_FORCE_ONBOARDING || !onboardingCompleted) &&
-    isLoaded;
+    !onboardingDismissed && (DEBUG_FORCE_ONBOARDING || !onboardingCompleted) && isLoaded;
 
   return (
     <main
@@ -149,9 +144,7 @@ function App() {
         <TitleBar
           onSettingsClick={() => setIsSettingsOpen(true)}
           onTogglePanel={handleTogglePanel}
-          isPanelVisible={
-            activeSessionId ? visiblePanels.has(activeSessionId) : false
-          }
+          isPanelVisible={activeSessionId ? visiblePanels.has(activeSessionId) : false}
         />
 
         <AppLayout

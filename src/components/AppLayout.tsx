@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 import type { SidebarPosition } from "../lib/sessions";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "./ui/resizable";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 
 interface AppLayoutProps {
   sidebarPosition: SidebarPosition;
@@ -41,10 +37,7 @@ export function AppLayout({
     }
 
     return (
-      <ResizablePanelGroup
-        orientation="horizontal"
-        style={{ flex: 1, overflow: "hidden" }}
-      >
+      <ResizablePanelGroup orientation="horizontal" style={{ flex: 1, overflow: "hidden" }}>
         {sidebarPosition === "left" && (
           <ResizablePanel defaultSize="220px" minSize="150px" maxSize="50%">
             {sidebar}
@@ -70,9 +63,7 @@ export function AppLayout({
   }[sidebarPosition];
 
   return (
-    <div
-      style={{ display: "flex", flexDirection, flex: 1, overflow: "hidden" }}
-    >
+    <div style={{ display: "flex", flexDirection, flex: 1, overflow: "hidden" }}>
       {sidebar}
       {children}
     </div>

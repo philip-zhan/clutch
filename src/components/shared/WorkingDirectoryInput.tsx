@@ -27,10 +27,7 @@ export function WorkingDirectoryInput({
   return (
     <div>
       {showHeader && (
-        <div
-          className="flex items-center"
-          style={{ gap: 12, marginBottom: 20 }}
-        >
+        <div className="flex items-center" style={{ gap: 12, marginBottom: 20 }}>
           <div
             className="flex items-center justify-center rounded-lg bg-surface-elevated"
             style={{ width: 36, height: 36 }}
@@ -38,12 +35,8 @@ export function WorkingDirectoryInput({
             <FolderOpen className="h-4 w-4 text-foreground-muted" />
           </div>
           <div>
-            <h3 className="text-base font-medium text-foreground">
-              Working Directory
-            </h3>
-            <p className="text-sm text-foreground-subtle">
-              Directory where sessions will start
-            </p>
+            <h3 className="text-base font-medium text-foreground">Working Directory</h3>
+            <p className="text-sm text-foreground-subtle">Directory where sessions will start</p>
           </div>
         </div>
       )}
@@ -52,12 +45,7 @@ export function WorkingDirectoryInput({
         <Button variant="outline" size="sm" onClick={handleSelectDirectory}>
           Choose...
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onChange("")}
-          disabled={!value}
-        >
+        <Button variant="outline" size="sm" onClick={() => onChange("")} disabled={!value}>
           Clear
         </Button>
       </div>

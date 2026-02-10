@@ -1,9 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef } from "react";
-import {
-  ACTIVITY_POLL_INTERVAL,
-  GIT_BRANCH_POLL_INTERVAL,
-} from "../lib/config";
+import { ACTIVITY_POLL_INTERVAL, GIT_BRANCH_POLL_INTERVAL } from "../lib/config";
 import type { ClaudeActivityState, Session } from "../lib/sessions";
 import type { NotificationSound } from "../lib/sounds";
 import { playNotificationSound } from "../lib/sounds";
@@ -27,17 +24,14 @@ export function usePolling({
   // Poll session activity from Rust backend
   const lastSeenRef = useRef<Record<string, string>>({});
   useEffect(() => {
-    const sessionIds = sessions
-      .filter((s) => s.status === "running")
-      .map((s) => s.id);
+    const sessionIds = sessions.filter((s) => s.status === "running").map((s) => s.id);
     if (sessionIds.length === 0) return;
 
     const poll = async () => {
       try {
-        const statuses = await invoke<Record<string, string>>(
-          "poll_session_activity",
-          { sessionIds },
-        );
+        const statuses = await invoke<Record<string, string>>("poll_session_activity", {
+          sessionIds,
+        });
         const lastSeen = lastSeenRef.current;
 
         for (const [sessionId, content] of Object.entries(statuses)) {
@@ -64,9 +58,7 @@ export function usePolling({
 
   // Poll git branches for running sessions
   useEffect(() => {
-    const runningSessions = sessions.filter(
-      (s) => s.status === "running" && s.workingDir,
-    );
+    const runningSessions = sessions.filter((s) => s.status === "running" && s.workingDir);
     if (runningSessions.length === 0) return;
 
     const poll = async () => {
@@ -75,10 +67,9 @@ export function usePolling({
         for (const s of runningSessions) {
           sessionDirs[s.id] = s.workingDir;
         }
-        const branches = await invoke<Record<string, string>>(
-          "get_git_branches",
-          { sessions: sessionDirs },
-        );
+        const branches = await invoke<Record<string, string>>("get_git_branches", {
+          sessions: sessionDirs,
+        });
         for (const [sessionId, branch] of Object.entries(branches)) {
           const session = sessions.find((s) => s.id === sessionId);
           if (session && session.gitBranch !== branch) {

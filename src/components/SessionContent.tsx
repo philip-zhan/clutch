@@ -4,11 +4,7 @@ import type { PanelImperativeHandle } from "react-resizable-panels";
 import type { Session } from "../lib/sessions";
 import { Terminal } from "./Terminal";
 import { Button } from "./ui/button";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "./ui/resizable";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 
 interface SessionContentProps {
   sessions: Session[];
@@ -64,9 +60,7 @@ export function SessionContent({
                   workingDir={session.workingDir}
                   command={session.command}
                   isActive={isActive}
-                  onStatusChange={(status) =>
-                    onStatusChange(session.id, status)
-                  }
+                  onStatusChange={(status) => onStatusChange(session.id, status)}
                 />
               </ResizablePanel>
 
@@ -151,12 +145,9 @@ export function SessionContent({
           </div>
           <div style={{ textAlign: "center" }}>
             <p className="text-foreground-muted text-sm">No sessions yet</p>
-            <p
-              className="text-foreground-subtle text-xs"
-              style={{ marginTop: 4 }}
-            >
-              Press <kbd className="font-mono text-foreground-muted">⌘T</kbd> or
-              click below to start
+            <p className="text-foreground-subtle text-xs" style={{ marginTop: 4 }}>
+              Press <kbd className="font-mono text-foreground-muted">⌘T</kbd> or click below to
+              start
             </p>
           </div>
           <Button style={{ padding: "8px 20px" }} onClick={onNewSession}>

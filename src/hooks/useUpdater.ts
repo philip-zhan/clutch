@@ -1,19 +1,9 @@
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  DEBUG_FORCE_UPDATE_TOAST,
-  UPDATE_CHECK_DELAY,
-  UPDATE_CHECK_INTERVAL,
-} from "../lib/config";
+import { DEBUG_FORCE_UPDATE_TOAST, UPDATE_CHECK_DELAY, UPDATE_CHECK_INTERVAL } from "../lib/config";
 
-export type UpdateStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "downloading"
-  | "ready"
-  | "error";
+export type UpdateStatus = "idle" | "checking" | "available" | "downloading" | "ready" | "error";
 
 export interface UpdateState {
   status: UpdateStatus;
@@ -45,54 +35,45 @@ export function useUpdater(): UseUpdaterResult {
   const statusRef = useRef(state.status);
   statusRef.current = state.status;
 
-  const checkForUpdates = useCallback(
-    async (options?: { silent?: boolean }) => {
-      if (
-        statusRef.current === "checking" ||
-        statusRef.current === "downloading"
-      ) {
-        return;
+  const checkForUpdates = useCallback(async (options?: { silent?: boolean }) => {
+    if (statusRef.current === "checking" || statusRef.current === "downloading") {
+      return;
+    }
+
+    setState((prev) => ({ ...prev, status: "checking", error: null }));
+
+    try {
+      const update = await check();
+
+      if (update) {
+        updateRef.current = update;
+        setState({
+          status: "available",
+          progress: 0,
+          error: null,
+          updateInfo: {
+            version: update.version,
+            currentVersion: update.currentVersion,
+            body: update.body ?? undefined,
+            date: update.date ?? undefined,
+          },
+        });
+      } else {
+        setState((prev) => ({ ...prev, status: "idle" }));
       }
-
-      setState((prev) => ({ ...prev, status: "checking", error: null }));
-
-      try {
-        const update = await check();
-
-        if (update) {
-          updateRef.current = update;
-          setState({
-            status: "available",
-            progress: 0,
-            error: null,
-            updateInfo: {
-              version: update.version,
-              currentVersion: update.currentVersion,
-              body: update.body ?? undefined,
-              date: update.date ?? undefined,
-            },
-          });
-        } else {
-          setState((prev) => ({ ...prev, status: "idle" }));
-        }
-      } catch (err) {
-        console.error("[Updater] Check failed:", err);
-        if (options?.silent) {
-          setState((prev) => ({ ...prev, status: "idle", error: null }));
-        } else {
-          setState((prev) => ({
-            ...prev,
-            status: "error",
-            error:
-              err instanceof Error
-                ? err.message
-                : "Failed to check for updates",
-          }));
-        }
+    } catch (err) {
+      console.error("[Updater] Check failed:", err);
+      if (options?.silent) {
+        setState((prev) => ({ ...prev, status: "idle", error: null }));
+      } else {
+        setState((prev) => ({
+          ...prev,
+          status: "error",
+          error: err instanceof Error ? err.message : "Failed to check for updates",
+        }));
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   const downloadAndInstall = useCallback(async () => {
     const update = updateRef.current;
@@ -111,10 +92,7 @@ export function useUpdater(): UseUpdaterResult {
             break;
           case "Progress": {
             downloaded += event.data?.chunkLength ?? 0;
-            const progress =
-              contentLength > 0
-                ? Math.round((downloaded / contentLength) * 100)
-                : 0;
+            const progress = contentLength > 0 ? Math.round((downloaded / contentLength) * 100) : 0;
             setState((prev) => ({ ...prev, progress }));
             break;
           }

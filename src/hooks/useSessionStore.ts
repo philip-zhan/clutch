@@ -62,9 +62,7 @@ export function useSessionStore() {
       const validFlags = worktreePaths.some((p) => p)
         ? await invoke<boolean[]>("validate_worktrees", { worktreePaths })
         : worktreePaths.map(() => true);
-      const persistedTabs = rawTabs.filter(
-        (_, i) => !worktreePaths[i] || validFlags[i],
-      );
+      const persistedTabs = rawTabs.filter((_, i) => !worktreePaths[i] || validFlags[i]);
 
       // Restore a session for each persisted tab
       // Session.id = PersistedTab.id — stable across restarts so
@@ -83,23 +81,16 @@ export function useSessionStore() {
       }));
       const activeSessionId = sessions.length > 0 ? sessions[0].id : null;
 
-      const sidebarPosition =
-        (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
-      const defaultCommand =
-        (await store.get<string>("defaultCommand")) ?? "claude";
-      const defaultWorkingDir =
-        (await store.get<string>("defaultWorkingDir")) ?? "";
-      const worktreeEnabled =
-        (await store.get<boolean>("worktreeEnabled")) ?? true;
-      const worktreeLocation =
-        (await store.get<WorktreeLocation>("worktreeLocation")) ?? "home";
-      const worktreeCustomPath =
-        (await store.get<string>("worktreeCustomPath")) ?? "";
+      const sidebarPosition = (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";
+      const defaultCommand = (await store.get<string>("defaultCommand")) ?? "claude";
+      const defaultWorkingDir = (await store.get<string>("defaultWorkingDir")) ?? "";
+      const worktreeEnabled = (await store.get<boolean>("worktreeEnabled")) ?? true;
+      const worktreeLocation = (await store.get<WorktreeLocation>("worktreeLocation")) ?? "home";
+      const worktreeCustomPath = (await store.get<string>("worktreeCustomPath")) ?? "";
       const branchPrefix = (await store.get<string>("branchPrefix")) ?? "";
       const notificationSound =
         (await store.get<NotificationSound>("notificationSound")) ?? "chime";
-      const onboardingCompleted =
-        (await store.get<boolean>("onboardingCompleted")) ?? false;
+      const onboardingCompleted = (await store.get<boolean>("onboardingCompleted")) ?? false;
 
       if (mounted) {
         setState({
@@ -161,24 +152,18 @@ export function useSessionStore() {
       const sessions = prev.sessions.filter((s) => s.id !== sessionId);
       let activeSessionId = prev.activeSessionId;
       if (activeSessionId === sessionId) {
-        activeSessionId =
-          sessions.length > 0 ? sessions[sessions.length - 1].id : null;
+        activeSessionId = sessions.length > 0 ? sessions[sessions.length - 1].id : null;
       }
       return { ...prev, sessions, activeSessionId };
     });
   }, []);
 
-  const updateSession = useCallback(
-    (sessionId: string, updates: Partial<Session>) => {
-      setState((prev) => ({
-        ...prev,
-        sessions: prev.sessions.map((s) =>
-          s.id === sessionId ? { ...s, ...updates } : s,
-        ),
-      }));
-    },
-    [],
-  );
+  const updateSession = useCallback((sessionId: string, updates: Partial<Session>) => {
+    setState((prev) => ({
+      ...prev,
+      sessions: prev.sessions.map((s) => (s.id === sessionId ? { ...s, ...updates } : s)),
+    }));
+  }, []);
 
   const setActiveSession = useCallback((sessionId: string) => {
     setState((prev) => ({ ...prev, activeSessionId: sessionId }));
@@ -220,17 +205,12 @@ export function useSessionStore() {
     setState((prev) => ({ ...prev, onboardingCompleted: completed }));
   }, []);
 
-  const setActivityState = useCallback(
-    (sessionId: string, activityState: ClaudeActivityState) => {
-      setState((prev) => ({
-        ...prev,
-        sessions: prev.sessions.map((s) =>
-          s.id === sessionId ? { ...s, activityState } : s,
-        ),
-      }));
-    },
-    [],
-  );
+  const setActivityState = useCallback((sessionId: string, activityState: ClaudeActivityState) => {
+    setState((prev) => ({
+      ...prev,
+      sessions: prev.sessions.map((s) => (s.id === sessionId ? { ...s, activityState } : s)),
+    }));
+  }, []);
 
   const addPersistedTab = useCallback((tab: PersistedTab) => {
     setState((prev) => ({

@@ -62,10 +62,7 @@ export function NewSessionDialog({
             <div>
               <Label style={{ display: "block", marginBottom: 8 }}>
                 Session Name
-                <span className="text-foreground-subtle font-normal">
-                  {" "}
-                  (optional)
-                </span>
+                <span className="text-foreground-subtle font-normal"> (optional)</span>
               </Label>
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
@@ -80,9 +77,7 @@ export function NewSessionDialog({
             </div>
 
             <div>
-              <Label style={{ display: "block", marginBottom: 8 }}>
-                Command
-              </Label>
+              <Label style={{ display: "block", marginBottom: 8 }}>Command</Label>
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
                 style={{ padding: "8px 12px", height: 36 }}
@@ -93,20 +88,14 @@ export function NewSessionDialog({
                   if (e.key === "Enter") handleCreate();
                 }}
               />
-              <p
-                className="text-xs text-foreground-subtle"
-                style={{ marginTop: 6 }}
-              >
+              <p className="text-xs text-foreground-subtle" style={{ marginTop: 6 }}>
                 e.g. <code className="font-mono">claude</code>,{" "}
-                <code className="font-mono">claude --profile architect</code>,
-                or leave empty for shell
+                <code className="font-mono">claude --profile architect</code>, or leave empty for
+                shell
               </p>
             </div>
 
-            <WorkingDirectoryInput
-              value={workingDir}
-              onChange={setWorkingDir}
-            />
+            <WorkingDirectoryInput value={workingDir} onChange={setWorkingDir} />
           </div>
         </DialogBody>
 
