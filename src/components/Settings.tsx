@@ -91,7 +91,7 @@ export function Settings({
       {/* Content */}
       <div className="flex-1 overflow-y-auto" style={{ padding: "32px 0" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 24px" }}>
-          <h1 className="text-lg font-semibold text-foreground" style={{ marginBottom: 32 }}>
+          <h1 className="text-xl font-semibold text-foreground" style={{ marginBottom: 32 }}>
             Settings
           </h1>
 
@@ -101,8 +101,8 @@ export function Settings({
               description="Command to run when creating new sessions. Leave empty for a plain shell."
             >
               <input
-                className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
-                style={{ padding: "8px 12px", height: 36 }}
+                className="w-full rounded-lg border border-border bg-surface-elevated text-base text-foreground font-mono focus:border-primary focus:outline-none"
+                style={{ padding: "10px 12px", height: 40 }}
                 placeholder="e.g. claude, codex, or leave empty"
                 value={localCommand}
                 onChange={(e) => setLocalCommand(e.target.value)}
@@ -148,8 +148,8 @@ export function Settings({
             >
               <div className="flex items-center" style={{ gap: 8 }}>
                 <select
-                  className="rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
-                  style={{ padding: "6px 12px", height: 36 }}
+                  className="rounded-lg border border-border bg-surface-elevated text-base text-foreground focus:border-primary focus:outline-none"
+                  style={{ padding: "6px 12px", height: 40 }}
                   value={notificationSound}
                   onChange={(e) => onNotificationSoundChange(e.target.value as NotificationSound)}
                 >
@@ -197,18 +197,18 @@ export function Settings({
                 </Label>
               </div>
 
-              <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+              <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
                 Use <kbd className="font-mono text-foreground-muted">⌘T</kbd> to create a session with a worktree, or <kbd className="font-mono text-foreground-muted">⌘⇧T</kbd> to create one without.
               </p>
 
               {worktreeEnabled && (
                 <div style={{ marginTop: 16 }}>
-                  <p className="text-xs text-foreground-muted" style={{ marginBottom: 8 }}>
+                  <p className="text-sm text-foreground-muted" style={{ marginBottom: 8 }}>
                     Branch prefix
                   </p>
                   <input
-                    className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground font-mono focus:border-primary focus:outline-none"
-                    style={{ padding: "8px 12px", height: 36 }}
+                    className="w-full rounded-lg border border-border bg-surface-elevated text-base text-foreground font-mono focus:border-primary focus:outline-none"
+                    style={{ padding: "10px 12px", height: 40 }}
                     placeholder="e.g. clutch/"
                     value={localBranchPrefix}
                     onChange={(e) => setLocalBranchPrefix(e.target.value)}
@@ -221,7 +221,7 @@ export function Settings({
                     autoCapitalize="off"
                     spellCheck={false}
                   />
-                  <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+                  <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
                     Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix}brave-golden-falcon</code>
                   </p>
                 </div>
@@ -245,7 +245,7 @@ export function Settings({
                     "Check for Updates"
                   )}
                 </Button>
-                <span className="text-xs text-foreground-subtle">
+                <span className="text-sm text-foreground-subtle">
                   v{__APP_VERSION__}
                 </span>
               </div>
@@ -255,8 +255,8 @@ export function Settings({
               title="Developer"
             >
               <div className="flex items-center" style={{ gap: 8 }}>
-                <span className="text-xs text-foreground-subtle">Session ID:</span>
-                <code className="text-xs font-mono text-foreground-muted select-all">
+                <span className="text-sm text-foreground-subtle">Session ID:</span>
+                <code className="text-sm font-mono text-foreground-muted select-all">
                   {activeSessionId ?? "—"}
                 </code>
               </div>
@@ -280,9 +280,9 @@ function SettingsSection({
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        <h3 className="text-base font-medium text-foreground">{title}</h3>
         {description && (
-          <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+          <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
             {description}
           </p>
         )}
