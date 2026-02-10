@@ -39,7 +39,7 @@ export function usePolling({
                         setActivityState(sessionId, "running");
                     } else if (content === "Stop") {
                         setActivityState(sessionId, "finished");
-                    } else if (content === "Notification" || content === "PermissionRequest") {
+                    } else if (content === "PermissionRequest") {
                         setActivityState(sessionId, "needs_input");
                         playNotificationSound(notificationSoundRef.current);
                     }
