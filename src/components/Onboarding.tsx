@@ -31,7 +31,7 @@ const CONCEPTS = [
         <span className="flex items-center" style={{ gap: 4 }}>
           <span
             className="inline-block rounded-full bg-green-400"
-            style={{ width: 8, height: 8, animation: "pulse 2s infinite" }}
+            style={{ width: 8, height: 8, animation: "pulse-green 2s infinite" }}
           />
           running
         </span>
@@ -85,8 +85,8 @@ export function Onboarding({
       />
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto" style={{ padding: "32px 0" }}>
-        <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 24px" }}>
+      <div className="flex-1 overflow-y-auto flex items-center justify-center">
+        <div style={{ maxWidth: 420, padding: "0 24px", width: "100%" }}>
           {step === 0 ? (
             <WelcomeScreen />
           ) : (
@@ -129,36 +129,40 @@ function WelcomeScreen() {
   return (
     <>
       <h1
-        className="text-xl font-semibold text-foreground"
-        style={{ marginBottom: 8 }}
+        className="text-2xl font-semibold text-foreground"
+        style={{ marginBottom: 6 }}
       >
         Welcome to Clutch
       </h1>
       <p
-        className="text-sm text-foreground-subtle"
-        style={{ marginBottom: 28 }}
+        className="text-sm text-foreground-muted"
+        style={{ marginBottom: 32 }}
       >
         A few things to know before you get started.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {CONCEPTS.map((c) => (
-          <div
-            key={c.title}
-            className="rounded-lg border border-border bg-surface-elevated/50"
-            style={{ padding: 16 }}
-          >
-            <div className="flex items-center" style={{ gap: 10, marginBottom: 8 }}>
-              <c.icon className="h-4 w-4 text-foreground-muted" />
-              <span className="text-base font-medium text-foreground">{c.title}</span>
+      <div>
+        {CONCEPTS.map((c, i) => (
+          <div key={c.title}>
+            {i > 0 && (
+              <div className="border-t border-border" style={{ marginLeft: 36 }} />
+            )}
+            <div className="flex" style={{ gap: 14, padding: "20px 0" }}>
+              <div style={{ paddingTop: 2 }}>
+                <c.icon className="h-5 w-5 text-foreground-muted" />
+              </div>
+              <div>
+                <p className="text-base font-medium text-foreground" style={{ marginBottom: 4 }}>
+                  {c.title}
+                </p>
+                <p className="text-sm text-foreground-muted" style={{ lineHeight: 1.5, marginBottom: 6 }}>
+                  {c.description}
+                </p>
+                <div className="text-xs text-foreground-muted" style={{ opacity: 0.7 }}>
+                  {c.hint}
+                </div>
+              </div>
             </div>
-            <p
-              className="text-sm text-foreground-subtle"
-              style={{ marginBottom: 8 }}
-            >
-              {c.description}
-            </p>
-            <div className="text-xs text-foreground-subtle">{c.hint}</div>
           </div>
         ))}
       </div>
@@ -176,13 +180,13 @@ function WorkingDirScreen({
   return (
     <>
       <h1
-        className="text-xl font-semibold text-foreground"
+        className="text-2xl font-semibold text-foreground"
         style={{ marginBottom: 8 }}
       >
         Working Directory
       </h1>
       <p
-        className="text-sm text-foreground-subtle"
+        className="text-base text-foreground-muted"
         style={{ marginBottom: 28 }}
       >
         Choose where new sessions start. You can always change this later in Settings.
