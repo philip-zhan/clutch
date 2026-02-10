@@ -9,7 +9,8 @@ import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { SessionContent } from "./components/SessionContent";
 import { AppLayout } from "./components/AppLayout";
 import { Settings } from "./components/Settings";
-import { UpdateDialog } from "./components/UpdateDialog";
+import { Toaster } from "./components/ui/sonner";
+import { useUpdateToast } from "./hooks/useUpdateToast";
 
 function App() {
     const {
@@ -37,6 +38,7 @@ function App() {
     } = useSessionStore();
 
     const updater = useUpdater();
+    useUpdateToast(updater);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -151,11 +153,7 @@ function App() {
                 </AppLayout>
             </div>
 
-            <UpdateDialog
-                state={updater}
-                onDownload={updater.downloadAndInstall}
-                onDismiss={updater.dismissUpdate}
-            />
+            <Toaster position="bottom-right" />
         </main>
     );
 }
