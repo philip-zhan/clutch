@@ -16,9 +16,9 @@ const CONCEPTS = [
     description:
       "Each session gets its own git worktree so work stays isolated. Branches use auto-generated names.",
     hint: (
-      <span>
-        <kbd className="font-mono text-foreground-muted">⌘T</kbd> new session{" "}
-        <kbd className="font-mono text-foreground-muted">⌘⇧T</kbd> without worktree
+      <span className="flex items-center" style={{ gap: 8 }}>
+        <Kbd>⌘T</Kbd> <span>new session</span>
+        <Kbd>⌘⇧T</Kbd> <span>without worktree</span>
       </span>
     ),
   },
@@ -27,25 +27,25 @@ const CONCEPTS = [
     title: "Status Indicator",
     description: "The colored dot next to each session shows Claude's state.",
     hint: (
-      <span className="flex items-center" style={{ gap: 12, flexWrap: "wrap" }}>
-        <span className="flex items-center" style={{ gap: 4 }}>
+      <span className="flex items-center" style={{ gap: 14, flexWrap: "wrap" }}>
+        <span className="flex items-center" style={{ gap: 6 }}>
           <span
-            className="inline-block rounded-full bg-green-400"
-            style={{ width: 8, height: 8, animation: "pulse-green 2s infinite" }}
+            className="inline-block rounded-full"
+            style={{ width: 9, height: 9, backgroundColor: "#22c55e", animation: "pulse-green 2s ease-in-out infinite" }}
           />
           running
         </span>
-        <span className="flex items-center" style={{ gap: 4 }}>
+        <span className="flex items-center" style={{ gap: 6 }}>
           <span
-            className="inline-block rounded-full bg-green-400"
-            style={{ width: 8, height: 8 }}
+            className="inline-block rounded-full"
+            style={{ width: 9, height: 9, backgroundColor: "#22c55e" }}
           />
           finished
         </span>
-        <span className="flex items-center" style={{ gap: 4 }}>
+        <span className="flex items-center" style={{ gap: 6 }}>
           <span
-            className="inline-block rounded-full bg-red-400"
-            style={{ width: 8, height: 8 }}
+            className="inline-block rounded-full"
+            style={{ width: 9, height: 9, backgroundColor: "#ef4444" }}
           />
           needs input
         </span>
@@ -57,9 +57,9 @@ const CONCEPTS = [
     title: "Built-in Terminal",
     description: "Full terminal with search, split panels, and clickable links.",
     hint: (
-      <span>
-        <kbd className="font-mono text-foreground-muted">⌘F</kbd> search{" "}
-        <kbd className="font-mono text-foreground-muted">⌘J</kbd> toggle panel
+      <span className="flex items-center" style={{ gap: 8 }}>
+        <Kbd>⌘F</Kbd> <span>search</span>
+        <Kbd>⌘J</Kbd> <span>toggle panel</span>
       </span>
     ),
   },
@@ -158,7 +158,7 @@ function WelcomeScreen() {
                 <p className="text-sm text-foreground-muted" style={{ lineHeight: 1.5, marginBottom: 6 }}>
                   {c.description}
                 </p>
-                <div className="text-xs text-foreground-muted" style={{ opacity: 0.7 }}>
+                <div className="text-sm text-foreground-muted">
                   {c.hint}
                 </div>
               </div>
@@ -194,6 +194,17 @@ function WorkingDirScreen({
 
       <WorkingDirectoryInput showHeader={false} value={value} onChange={onChange} />
     </>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd
+      className="font-mono text-foreground-muted bg-surface-elevated border border-border rounded"
+      style={{ padding: "2px 6px", fontSize: 12, lineHeight: "18px" }}
+    >
+      {children}
+    </kbd>
   );
 }
 
