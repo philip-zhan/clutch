@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Clutch",
-  "version": "26.209.1",
+  "version": "26.209.2",
   "identifier": "computer.clutch.desktop",
   "build": {
     "beforeDevCommand": "bun run dev",
