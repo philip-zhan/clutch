@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { UPDATE_CHECK_DELAY, UPDATE_CHECK_INTERVAL } from "../lib/config";
 
 export type UpdateStatus =
 	| "idle"
@@ -132,11 +133,11 @@ export function useUpdater(): UseUpdaterResult {
 	useEffect(() => {
 		const initialTimer = setTimeout(() => {
 			checkForUpdates();
-		}, 3000);
+		}, UPDATE_CHECK_DELAY);
 
 		const interval = setInterval(() => {
 			checkForUpdates();
-		}, 30 * 60 * 1000);
+		}, UPDATE_CHECK_INTERVAL);
 
 		return () => {
 			clearTimeout(initialTimer);
