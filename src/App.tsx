@@ -86,13 +86,14 @@ function App() {
         isSettingsOpen,
     });
 
-    const showOnboarding = (DEBUG_FORCE_ONBOARDING || !onboardingCompleted) && isLoaded;
+    const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+    const showOnboarding = !onboardingDismissed && (DEBUG_FORCE_ONBOARDING || !onboardingCompleted) && isLoaded;
 
     return (
         <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
             {showOnboarding && (
                 <Onboarding
-                    onComplete={() => setOnboardingCompleted(true)}
+                    onComplete={() => { setOnboardingCompleted(true); setOnboardingDismissed(true); }}
                     defaultWorkingDir={defaultWorkingDir}
                     onDefaultWorkingDirChange={setDefaultWorkingDir}
                 />
