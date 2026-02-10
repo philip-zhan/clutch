@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
+import { generateSessionId } from "@/lib/sessions";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
 import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { NotificationSound } from "@/lib/sounds";
@@ -47,12 +49,31 @@ export function useSessionStore() {
       const store = await Store.load(STORE_FILE);
       storeRef.current = store;
 
-      // Sessions are ephemeral — always start fresh
-      const sessions: Session[] = [];
-      const activeSessionId = null;
-
       // Tabs persist across restarts
-      const persistedTabs = (await store.get<PersistedTab[]>("persistedTabs")) ?? [];
+      const rawTabs = (await store.get<PersistedTab[]>("persistedTabs")) ?? [];
+
+      // Validate which worktree paths still exist on disk
+      const worktreePaths = rawTabs.map((t) => t.worktreePath ?? "");
+      const validFlags = worktreePaths.some((p) => p)
+        ? await invoke<boolean[]>("validate_worktrees", { worktreePaths })
+        : worktreePaths.map(() => true);
+      const persistedTabs = rawTabs.filter((_, i) => !worktreePaths[i] || validFlags[i]);
+
+      // Restore a session for each persisted tab
+      const sessions: Session[] = persistedTabs.map((tab) => ({
+        id: generateSessionId(),
+        name: "",
+        workingDir: tab.workingDir,
+        command: tab.command,
+        status: "running" as const,
+        createdAt: Date.now(),
+        persistedTabId: tab.id,
+        worktreePath: tab.worktreePath,
+        gitRepoPath: tab.gitRepoPath,
+        originalWorkingDir: tab.originalWorkingDir,
+        activityState: "idling" as const,
+      }));
+      const activeSessionId = sessions.length > 0 ? sessions[0].id : null;
 
       const sidebarPosition =
         (await store.get<SidebarPosition>("sidebarPosition")) ?? "left";

@@ -1,7 +1,9 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { nanoid } from "nanoid";
 import { generateSessionId, generateBranchName } from "../lib/sessions";
 import type { Session } from "../lib/sessions";
+import type { PersistedTab } from "../lib/persisted-tabs";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 
 interface UseSessionHandlersOptions {
@@ -16,6 +18,8 @@ interface UseSessionHandlersOptions {
     removeSession: (sessionId: string) => void;
     updateSession: (sessionId: string, updates: Partial<Session>) => void;
     setActiveSession: (sessionId: string) => void;
+    addPersistedTab: (tab: PersistedTab) => void;
+    removePersistedTab: (tabId: string) => void;
 }
 
 export function useSessionHandlers({
@@ -30,6 +34,8 @@ export function useSessionHandlers({
     removeSession,
     updateSession,
     setActiveSession,
+    addPersistedTab,
+    removePersistedTab,
 }: UseSessionHandlersOptions) {
     // Terminal panel state (per-session shell panel below main terminal)
     const [mountedPanels, setMountedPanels] = useState<Set<string>>(new Set());
@@ -79,6 +85,7 @@ export function useSessionHandlers({
                 }
             }
 
+            const persistedTabId = nanoid();
             const session: Session = {
                 id: sessionId,
                 name,
@@ -86,14 +93,24 @@ export function useSessionHandlers({
                 command: command || undefined,
                 status: "running",
                 createdAt: Date.now(),
+                persistedTabId,
                 worktreePath,
                 gitRepoPath,
                 originalWorkingDir,
                 activityState: "idling",
             };
             addSession(session);
+            addPersistedTab({
+                id: persistedTabId,
+                workingDir: effectiveDir,
+                command: command || undefined,
+                createdAt: Date.now(),
+                worktreePath,
+                gitRepoPath,
+                originalWorkingDir,
+            });
         },
-        [addSession, sessions, worktreeEnabled, branchPrefix]
+        [addSession, addPersistedTab, sessions, worktreeEnabled, branchPrefix]
     );
 
     const handleNewSession = useCallback(() => {
@@ -162,9 +179,12 @@ export function useSessionHandlers({
             }
 
             mountedSessionsRef.current.delete(sessionId);
+            if (session?.persistedTabId) {
+                removePersistedTab(session.persistedTabId);
+            }
             removeSession(sessionId);
         },
-        [sessions, removeSession, mountedPanels]
+        [sessions, removeSession, removePersistedTab, mountedPanels]
     );
 
     const handleRestartSession = useCallback(

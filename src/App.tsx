@@ -33,6 +33,8 @@ function App() {
         notificationSound,
         setNotificationSound,
         setActivityState,
+        addPersistedTab,
+        removePersistedTab,
         getPersistedTab,
     } = useSessionStore();
 
@@ -64,6 +66,8 @@ function App() {
         removeSession,
         updateSession,
         setActiveSession,
+        addPersistedTab,
+        removePersistedTab,
     });
 
     usePolling({ sessions, notificationSound, setActivityState, updateSession });
