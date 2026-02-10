@@ -42,6 +42,7 @@ function App() {
 
     const {
         handleNewSession,
+        handleNewSessionWithoutWorktree,
         handleCloseSession,
         handleRestartSession,
         handleRenameSession,
@@ -73,6 +74,7 @@ function App() {
         activeSessionId,
         onSelectSession: handleSelectSession,
         onNewSession: handleNewSession,
+        onNewSessionWithoutWorktree: handleNewSessionWithoutWorktree,
         onCloseSession: handleCloseSession,
         onTogglePanel: handleTogglePanel,
         onToggleSidebar: useCallback(() => setSidebarCollapsed((prev) => !prev), []),

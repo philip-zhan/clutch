@@ -42,7 +42,7 @@ export function useSessionHandlers({
     const panelRefs = useRef<Map<string, PanelImperativeHandle | null>>(new Map());
 
     const handleCreateSession = useCallback(
-        async (name: string, workingDir: string, command: string) => {
+        async (name: string, workingDir: string, command: string, skipWorktree = false) => {
             const sessionId = generateSessionId();
             let effectiveDir = workingDir;
             let worktreePath: string | undefined;
@@ -55,7 +55,7 @@ export function useSessionHandlers({
                     (!s.worktreePath && s.workingDir === workingDir)
             );
 
-            if (worktreeEnabled && workingDir && hasExistingSessionForRepo) {
+            if (!skipWorktree && worktreeEnabled && workingDir && hasExistingSessionForRepo) {
                 try {
                     const branchName = branchPrefix + generateBranchName();
                     const result = await invoke<{
@@ -98,6 +98,10 @@ export function useSessionHandlers({
 
     const handleNewSession = useCallback(() => {
         handleCreateSession("", defaultWorkingDir, defaultCommand);
+    }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
+
+    const handleNewSessionWithoutWorktree = useCallback(() => {
+        handleCreateSession("", defaultWorkingDir, defaultCommand, true);
     }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
 
     // Auto-create a session on startup
@@ -227,6 +231,7 @@ export function useSessionHandlers({
 
     return {
         handleNewSession,
+        handleNewSessionWithoutWorktree,
         handleCloseSession,
         handleRestartSession,
         handleRenameSession,
