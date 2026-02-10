@@ -39,6 +39,8 @@ function App() {
 		addPersistedTab,
 		removePersistedTab,
 		getPersistedTab,
+		onboardingCompleted,
+		setOnboardingCompleted,
 	} = useSessionStore();
 
 	const updater = useUpdater();
@@ -48,6 +50,7 @@ function App() {
 
 	const {
 		handleNewSession,
+		handleNewSessionWithoutWorktree,
 		handleCloseSession,
 		handleRestartSession,
 		handleRenameSession,
