@@ -11,6 +11,7 @@ import { AppLayout } from "./components/AppLayout";
 import { Settings } from "./components/Settings";
 import { Onboarding } from "./components/Onboarding";
 import { UpdateDialog } from "./components/UpdateDialog";
+import { DEBUG_FORCE_ONBOARDING } from "./lib/config";
 
 function App() {
     const {
@@ -85,7 +86,7 @@ function App() {
         isSettingsOpen,
     });
 
-    const showOnboarding = !onboardingCompleted && isLoaded;
+    const showOnboarding = (DEBUG_FORCE_ONBOARDING || !onboardingCompleted) && isLoaded;
 
     return (
         <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
