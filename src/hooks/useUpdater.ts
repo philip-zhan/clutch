@@ -24,7 +24,7 @@ export interface UpdateState {
 }
 
 export interface UseUpdaterResult extends UpdateState {
-	checkForUpdates: () => Promise<void>;
+	checkForUpdates: (options?: { silent?: boolean }) => Promise<void>;
 	downloadAndInstall: () => Promise<void>;
 	dismissUpdate: () => void;
 }
@@ -41,7 +41,7 @@ export function useUpdater(): UseUpdaterResult {
 	const statusRef = useRef(state.status);
 	statusRef.current = state.status;
 
-	const checkForUpdates = useCallback(async () => {
+	const checkForUpdates = useCallback(async (options?: { silent?: boolean }) => {
 		if (statusRef.current === "checking" || statusRef.current === "downloading") {
 			return;
 		}
@@ -69,12 +69,16 @@ export function useUpdater(): UseUpdaterResult {
 			}
 		} catch (err) {
 			console.error("[Updater] Check failed:", err);
-			setState((prev) => ({
-				...prev,
-				status: "error",
-				error:
-					err instanceof Error ? err.message : "Failed to check for updates",
-			}));
+			if (options?.silent) {
+				setState((prev) => ({ ...prev, status: "idle", error: null }));
+			} else {
+				setState((prev) => ({
+					...prev,
+					status: "error",
+					error:
+						err instanceof Error ? err.message : "Failed to check for updates",
+				}));
+			}
 		}
 	}, []);
 
@@ -132,11 +136,11 @@ export function useUpdater(): UseUpdaterResult {
 	// Auto-check on startup + every 30 minutes
 	useEffect(() => {
 		const initialTimer = setTimeout(() => {
-			checkForUpdates();
+			checkForUpdates({ silent: true });
 		}, UPDATE_CHECK_DELAY);
 
 		const interval = setInterval(() => {
-			checkForUpdates();
+			checkForUpdates({ silent: true });
 		}, UPDATE_CHECK_INTERVAL);
 
 		return () => {
