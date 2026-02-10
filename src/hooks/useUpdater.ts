@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { UPDATE_CHECK_DELAY, UPDATE_CHECK_INTERVAL } from "../lib/config";
+import { DEBUG_FORCE_UPDATE_TOAST, UPDATE_CHECK_DELAY, UPDATE_CHECK_INTERVAL } from "../lib/config";
 
 export type UpdateStatus =
 	| "idle"
@@ -135,6 +135,16 @@ export function useUpdater(): UseUpdaterResult {
 
 	// Auto-check on startup + every 30 minutes
 	useEffect(() => {
+		if (DEBUG_FORCE_UPDATE_TOAST) {
+			setState({
+				status: "available",
+				progress: 0,
+				error: null,
+				updateInfo: { version: "0.0.0-debug", currentVersion: "0.0.0" },
+			});
+			return;
+		}
+
 		const initialTimer = setTimeout(() => {
 			checkForUpdates({ silent: true });
 		}, UPDATE_CHECK_DELAY);
