@@ -35,10 +35,12 @@ function App() {
 		setBranchPrefix,
 		notificationSound,
 		setNotificationSound,
+		setActivityState,
+		addPersistedTab,
+		removePersistedTab,
+		getPersistedTab,
 		onboardingCompleted,
 		setOnboardingCompleted,
-		setActivityState,
-		getPersistedTab,
 	} = useSessionStore();
 
 	const updater = useUpdater();
@@ -71,6 +73,8 @@ function App() {
 		removeSession,
 		updateSession,
 		setActiveSession,
+		addPersistedTab,
+		removePersistedTab,
 	});
 
 	usePolling({ sessions, notificationSound, setActivityState, updateSession });
