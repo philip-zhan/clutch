@@ -8,6 +8,7 @@ import type { ISearchOptions } from "@xterm/addon-search";
 import { usePty } from "../hooks/usePty";
 import { TerminalSearchBar } from "./TerminalSearchBar";
 import "@xterm/xterm/css/xterm.css";
+import { TERMINAL_FONT_FAMILY, TERMINAL_FONT_SIZE, TERMINAL_LINE_HEIGHT } from "../lib/config";
 
 export interface TerminalProps {
   sessionId: string;
@@ -115,9 +116,9 @@ export function Terminal({
       allowProposedApi: true,
       cursorBlink: true,
       cursorStyle: "bar",
-      fontFamily: "'SF Mono', 'JetBrains Mono', Menlo, Monaco, monospace",
-      fontSize: 13,
-      lineHeight: 1.35,
+      fontFamily: TERMINAL_FONT_FAMILY,
+      fontSize: TERMINAL_FONT_SIZE,
+      lineHeight: TERMINAL_LINE_HEIGHT,
       letterSpacing: 0,
       overviewRuler: { width: 0 },
       theme: {

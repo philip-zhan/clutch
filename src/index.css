@@ -130,7 +130,7 @@ button, a, input {
     transform: scale(1);
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.15;
     transform: scale(1.3);
   }
 }

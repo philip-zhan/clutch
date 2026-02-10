@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
+import { STORE_FILE } from "@/lib/config";
 import type { Session, SidebarPosition, WorktreeLocation, ClaudeActivityState } from "@/lib/sessions";
 import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { NotificationSound } from "@/lib/sounds";
-
-const STORE_FILE = "sessions.json";
 
 interface SessionStoreState {
   sessions: Session[];
@@ -18,6 +17,7 @@ interface SessionStoreState {
   worktreeCustomPath: string;
   branchPrefix: string;
   notificationSound: NotificationSound;
+  onboardingCompleted: boolean;
 }
 
 const DEFAULT_STATE: SessionStoreState = {
@@ -32,6 +32,7 @@ const DEFAULT_STATE: SessionStoreState = {
   worktreeCustomPath: "",
   branchPrefix: "",
   notificationSound: "chime",
+  onboardingCompleted: false,
 };
 
 export function useSessionStore() {
@@ -70,6 +71,8 @@ export function useSessionStore() {
         (await store.get<string>("branchPrefix")) ?? "";
       const notificationSound =
         (await store.get<NotificationSound>("notificationSound")) ?? "chime";
+      const onboardingCompleted =
+        (await store.get<boolean>("onboardingCompleted")) ?? false;
 
       if (mounted) {
         setState({
@@ -84,6 +87,7 @@ export function useSessionStore() {
           worktreeCustomPath,
           branchPrefix,
           notificationSound,
+          onboardingCompleted,
         });
         isLoadedRef.current = true;
       }
@@ -111,6 +115,7 @@ export function useSessionStore() {
       await store.set("worktreeCustomPath", state.worktreeCustomPath);
       await store.set("branchPrefix", state.branchPrefix);
       await store.set("notificationSound", state.notificationSound);
+      await store.set("onboardingCompleted", state.onboardingCompleted);
       await store.save();
     };
     persist();
@@ -183,6 +188,10 @@ export function useSessionStore() {
     setState((prev) => ({ ...prev, notificationSound: sound }));
   }, []);
 
+  const setOnboardingCompleted = useCallback((completed: boolean) => {
+    setState((prev) => ({ ...prev, onboardingCompleted: completed }));
+  }, []);
+
   const setActivityState = useCallback((sessionId: string, activityState: ClaudeActivityState) => {
     setState((prev) => ({
       ...prev,
@@ -226,6 +235,7 @@ export function useSessionStore() {
     setWorktreeCustomPath,
     setBranchPrefix,
     setNotificationSound,
+    setOnboardingCompleted,
     setActivityState,
     addPersistedTab,
     removePersistedTab,

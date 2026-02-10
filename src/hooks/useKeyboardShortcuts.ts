@@ -6,6 +6,7 @@ interface UseKeyboardShortcutsOptions {
     activeSessionId: string | null;
     onSelectSession: (sessionId: string) => void;
     onNewSession: () => void;
+    onNewSessionWithoutWorktree: () => void;
     onCloseSession: (sessionId: string) => void;
     onTogglePanel: () => void;
     onToggleSidebar: () => void;
@@ -18,6 +19,7 @@ export function useKeyboardShortcuts({
     activeSessionId,
     onSelectSession,
     onNewSession,
+    onNewSessionWithoutWorktree,
     onCloseSession,
     onTogglePanel,
     onToggleSidebar,
@@ -40,6 +42,13 @@ export function useKeyboardShortcuts({
             if (e.key === "b" && !e.shiftKey) {
                 e.preventDefault();
                 onToggleSidebar();
+                return;
+            }
+
+            // Cmd+Shift+T — New session without worktree
+            if (e.key === "t" && e.shiftKey) {
+                e.preventDefault();
+                onNewSessionWithoutWorktree();
                 return;
             }
 
@@ -108,5 +117,5 @@ export function useKeyboardShortcuts({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [sessions, activeSessionId, onSelectSession, onCloseSession, onNewSession, onTogglePanel, onToggleSidebar, onToggleSettings, isSettingsOpen]);
+    }, [sessions, activeSessionId, onSelectSession, onCloseSession, onNewSession, onNewSessionWithoutWorktree, onTogglePanel, onToggleSidebar, onToggleSettings, isSettingsOpen]);
 }

@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { Session, ClaudeActivityState } from "../lib/sessions";
 import type { NotificationSound } from "../lib/sounds";
 import { playNotificationSound } from "../lib/sounds";
+import { ACTIVITY_POLL_INTERVAL, GIT_BRANCH_POLL_INTERVAL } from "../lib/config";
 
 interface UsePollingOptions {
     sessions: Session[];
@@ -49,7 +50,7 @@ export function usePolling({
             }
         };
 
-        const interval = setInterval(poll, 250);
+        const interval = setInterval(poll, ACTIVITY_POLL_INTERVAL);
         return () => clearInterval(interval);
     }, [sessions, setActivityState]);
 
@@ -77,7 +78,7 @@ export function usePolling({
         };
 
         poll(); // Initial fetch
-        const interval = setInterval(poll, 5000);
+        const interval = setInterval(poll, GIT_BRANCH_POLL_INTERVAL);
         return () => clearInterval(interval);
     }, [sessions, updateSession]);
 }
