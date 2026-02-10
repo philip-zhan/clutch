@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { nanoid } from "nanoid";
-import { generateSessionId, generateBranchName } from "../lib/sessions";
+import { generateBranchName } from "../lib/sessions";
 import type { Session } from "../lib/sessions";
 import type { PersistedTab } from "../lib/persisted-tabs";
 import type { PanelImperativeHandle } from "react-resizable-panels";
@@ -49,7 +49,9 @@ export function useSessionHandlers({
 
     const handleCreateSession = useCallback(
         async (name: string, workingDir: string, command: string, skipWorktree = false) => {
-            const sessionId = generateSessionId();
+            // Single ID used for both Session.id and PersistedTab.id.
+            // Stable across restarts so CLUTCH_SESSION_ID and status dirs survive.
+            const id = nanoid();
             let effectiveDir = workingDir;
             let worktreePath: string | undefined;
             let gitRepoPath: string | undefined;
@@ -69,7 +71,7 @@ export function useSessionHandlers({
                         worktree_path: string | null;
                         git_repo_path: string | null;
                     }>("setup_session_worktree", {
-                        worktreeId: sessionId,
+                        worktreeId: id,
                         branchName,
                         workingDir,
                         location: "home",
@@ -85,15 +87,13 @@ export function useSessionHandlers({
                 }
             }
 
-            const persistedTabId = nanoid();
             const session: Session = {
-                id: sessionId,
+                id,
                 name,
                 workingDir: effectiveDir,
                 command: command || undefined,
                 status: "running",
                 createdAt: Date.now(),
-                persistedTabId,
                 worktreePath,
                 gitRepoPath,
                 originalWorkingDir,
@@ -101,7 +101,7 @@ export function useSessionHandlers({
             };
             addSession(session);
             addPersistedTab({
-                id: persistedTabId,
+                id,
                 workingDir: effectiveDir,
                 command: command || undefined,
                 createdAt: Date.now(),
@@ -137,7 +137,7 @@ export function useSessionHandlers({
             // Destroy panel PTY if it was mounted
             if (mountedPanels.has(sessionId)) {
                 try {
-                    await invoke("destroy_session", { sessionId: `${sessionId}_panel`, statusId: null });
+                    await invoke("destroy_session", { sessionId: `${sessionId}_panel` });
                 } catch {
                     // Panel PTY may already be gone
                 }
@@ -154,10 +154,7 @@ export function useSessionHandlers({
             }
 
             try {
-                await invoke("destroy_session", {
-                    sessionId,
-                    statusId: session?.persistedTabId ?? null,
-                });
+                await invoke("destroy_session", { sessionId });
             } catch {
                 // PTY may already be gone
             }
@@ -186,9 +183,7 @@ export function useSessionHandlers({
             }
 
             mountedSessionsRef.current.delete(sessionId);
-            if (session?.persistedTabId) {
-                removePersistedTab(session.persistedTabId);
-            }
+            removePersistedTab(sessionId);
             removeSession(sessionId);
         },
         [sessions, removeSession, removePersistedTab, mountedPanels]

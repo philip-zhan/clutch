@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import { invoke } from "@tauri-apps/api/core";
-import { generateSessionId } from "@/lib/sessions";
 import { STORE_FILE } from "@/lib/config";
 import type {
 	Session,
@@ -68,14 +67,15 @@ export function useSessionStore() {
 			);
 
 			// Restore a session for each persisted tab
+			// Session.id = PersistedTab.id — stable across restarts so
+			// CLUTCH_SESSION_ID and status directories survive hot-reload / restart.
 			const sessions: Session[] = persistedTabs.map((tab) => ({
-				id: generateSessionId(),
+				id: tab.id,
 				name: "",
 				workingDir: tab.workingDir,
 				command: tab.command,
 				status: "running" as const,
 				createdAt: Date.now(),
-				persistedTabId: tab.id,
 				worktreePath: tab.worktreePath,
 				gitRepoPath: tab.gitRepoPath,
 				originalWorkingDir: tab.originalWorkingDir,

@@ -102,7 +102,7 @@ function VerticalSidebar({
 
   const handleDoubleClick = (session: Session) => {
     setEditingId(session.id);
-    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.persistedTabId)));
+    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.id)));
   };
 
   const commitRename = () => {
@@ -181,7 +181,7 @@ function VerticalSidebar({
                 ) : (
                   <>
                     <div className="text-sm truncate">
-                      {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
+                      {sessionDisplayName(session, getPersistedTab(session.id))}
                     </div>
                     {session.gitBranch && (
                       <div
@@ -291,7 +291,7 @@ function HorizontalSidebar({
               }}
             />
             <span className="text-xs truncate" style={{ maxWidth: 120 }}>
-              {sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
+              {sessionDisplayName(session, getPersistedTab(session.id))}
             </span>
             {session.gitBranch && (
               <span
@@ -392,7 +392,7 @@ export function CollapsedSidebar({
               )}
               style={{ width: 32, height: 32, flexShrink: 0 }}
               onClick={() => onSelect(session.id)}
-              title={sessionDisplayName(session, getPersistedTab(session.persistedTabId))}
+              title={sessionDisplayName(session, getPersistedTab(session.id))}
             >
               <div
                 className="rounded-full"

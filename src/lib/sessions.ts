@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import {
 	uniqueNamesGenerator,
 	adjectives,
@@ -20,22 +19,17 @@ export type SidebarPosition = "left" | "right" | "top" | "bottom";
 export type WorktreeLocation = "sibling" | "home" | "custom";
 
 export interface Session {
-	id: string; // nanoid — ephemeral, regenerated each app start
+	id: string; // nanoid — same as PersistedTab.id, stable across restarts
 	name: string;
 	workingDir: string; // effective dir (worktree path or original)
 	command?: string;
 	status: SessionStatus;
 	createdAt: number;
-	persistedTabId?: string; // FK → PersistedTab.id
 	activityState?: ClaudeActivityState;
 	gitBranch?: string;
 	worktreePath?: string;
 	gitRepoPath?: string;
 	originalWorkingDir?: string;
-}
-
-export function generateSessionId(): string {
-	return nanoid();
 }
 
 export function generateBranchName(): string {

@@ -63,7 +63,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
   }, [sessionId]);
 
   const spawn = useCallback(
-    async (cols: number, rows: number, workingDir?: string, command?: string, statusId?: string) => {
+    async (cols: number, rows: number, workingDir?: string, command?: string) => {
       if (isSpawned.current) return;
       isSpawned.current = true;
       lastSpawnArgs.current = { cols, rows, workingDir, command };
@@ -74,14 +74,13 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
         rows,
         workingDir: workingDir ?? null,
         command: command ?? null,
-        statusId: statusId ?? null,
       });
     },
     [sessionId]
   );
 
   const respawn = useCallback(
-    async (workingDir?: string, command?: string, statusId?: string) => {
+    async (workingDir?: string, command?: string) => {
       if (!lastSpawnArgs.current) return;
 
       isSpawned.current = false;
@@ -96,7 +95,6 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
         rows,
         workingDir: dir ?? null,
         command: cmd ?? null,
-        statusId: statusId ?? null,
       });
 
       isSpawned.current = true;
@@ -121,9 +119,9 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
     [sessionId]
   );
 
-  const destroy = useCallback(async (statusId?: string) => {
+  const destroy = useCallback(async () => {
     isSpawned.current = false;
-    await invoke("destroy_session", { sessionId, statusId: statusId ?? null });
+    await invoke("destroy_session", { sessionId });
   }, [sessionId]);
 
   return { spawn, respawn, write, resize, destroy };

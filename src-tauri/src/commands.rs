@@ -19,7 +19,6 @@ pub fn create_session(
     rows: u16,
     working_dir: Option<String>,
     command: Option<String>,
-    status_id: Option<String>,
 ) -> Result<(), String> {
     let mut map = state
         .0
@@ -31,14 +30,11 @@ pub fn create_session(
         return Ok(());
     }
 
-    // Create session directory for status tracking.
-    // Use status_id (persisted tab ID, stable across restarts) when available,
-    // falling back to session_id for panels or sessions without persisted tabs.
-    let effective_status_id = status_id.unwrap_or_else(|| session_id.clone());
-    sessions_dir.create_session_dir(&effective_status_id);
+    // Create session directory for status tracking
+    sessions_dir.create_session_dir(&session_id);
 
     let env_vars = vec![
-        ("CLUTCH_SESSION_ID".to_string(), effective_status_id),
+        ("CLUTCH_SESSION_ID".to_string(), session_id.clone()),
     ];
 
     let pty = PtyManager::new(cols, rows)?;
@@ -54,7 +50,6 @@ pub fn destroy_session(
     state: State<'_, PtyState>,
     sessions_dir: State<'_, Arc<SessionsDir>>,
     session_id: String,
-    status_id: Option<String>,
 ) -> Result<(), String> {
     let mut map = state
         .0
@@ -64,9 +59,8 @@ pub fn destroy_session(
     // Removing from the map drops PtyManager, which closes the PTY
     map.remove(&session_id);
 
-    // Clean up session directory (keyed by status_id if available)
-    let effective_status_id = status_id.unwrap_or(session_id);
-    sessions_dir.remove_session_dir(&effective_status_id);
+    // Clean up session directory
+    sessions_dir.remove_session_dir(&session_id);
 
     Ok(())
 }
@@ -81,7 +75,6 @@ pub fn restart_session(
     rows: u16,
     working_dir: Option<String>,
     command: Option<String>,
-    status_id: Option<String>,
 ) -> Result<(), String> {
     // Destroy existing
     {
@@ -95,7 +88,7 @@ pub fn restart_session(
     // Note: don't remove session dir here — create_session will reuse it
 
     // Create new
-    create_session(state, sessions_dir, app_handle, session_id, cols, rows, working_dir, command, status_id)
+    create_session(state, sessions_dir, app_handle, session_id, cols, rows, working_dir, command)
 }
 
 #[tauri::command]
@@ -202,7 +195,5 @@ pub fn cleanup_all(
     if let Ok(mut map) = pty_state.0.lock() {
         map.clear();
     }
-    // Session dirs are keyed by status_id (persisted tab ID), not session_id.
-    // Remove all dirs; they'll be recreated on next startup from persisted tabs.
     sessions_dir.remove_all();
 }

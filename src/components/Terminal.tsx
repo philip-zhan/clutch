@@ -14,7 +14,6 @@ export interface TerminalProps {
   sessionId: string;
   workingDir: string;
   command?: string;
-  statusId?: string;
   isActive: boolean;
   onStatusChange?: (status: "running" | "exited") => void;
   backgroundColor?: string;
@@ -25,7 +24,6 @@ export function Terminal({
   sessionId,
   workingDir,
   command,
-  statusId,
   isActive,
   onStatusChange,
   backgroundColor = "#000000",
@@ -170,7 +168,7 @@ export function Terminal({
 
     terminal.writeln("\x1b[90mStarting session...\x1b[0m\r\n");
 
-    spawn(cols, rows, workingDir || undefined, command || undefined, statusId || undefined).then(() => {
+    spawn(cols, rows, workingDir || undefined, command || undefined).then(() => {
       onStatusChange?.("running");
       // Re-fit after spawn to catch container layout settling
       setTimeout(() => {

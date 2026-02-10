@@ -50,7 +50,6 @@ export function SessionContent({
                                     sessionId={session.id}
                                     workingDir={session.workingDir}
                                     command={session.command}
-                                    statusId={session.persistedTabId}
                                     isActive={isActive}
                                     onStatusChange={(status) => onStatusChange(session.id, status)}
                                 />

@@ -21,32 +21,20 @@ export function usePolling({
     const notificationSoundRef = useRef(notificationSound);
     notificationSoundRef.current = notificationSound;
 
-    // Poll session activity from Rust backend.
-    // Uses persistedTabId (stable across restarts) to match status directories.
+    // Poll session activity from Rust backend
     const lastSeenRef = useRef<Record<string, string>>({});
     useEffect(() => {
-        const runningSessions = sessions.filter((s) => s.status === "running" && s.persistedTabId);
-        if (runningSessions.length === 0) return;
-
-        // Map persistedTabId → sessionId for result mapping
-        const statusToSession: Record<string, string> = {};
-        const statusIds: string[] = [];
-        for (const s of runningSessions) {
-            statusToSession[s.persistedTabId!] = s.id;
-            statusIds.push(s.persistedTabId!);
-        }
+        const sessionIds = sessions.filter((s) => s.status === "running").map((s) => s.id);
+        if (sessionIds.length === 0) return;
 
         const poll = async () => {
             try {
-                const statuses = await invoke<Record<string, string>>("poll_session_activity", { sessionIds: statusIds });
+                const statuses = await invoke<Record<string, string>>("poll_session_activity", { sessionIds });
                 const lastSeen = lastSeenRef.current;
 
-                for (const [statusId, content] of Object.entries(statuses)) {
-                    if (content === lastSeen[statusId]) continue;
-                    lastSeen[statusId] = content;
-
-                    const sessionId = statusToSession[statusId];
-                    if (!sessionId) continue;
+                for (const [sessionId, content] of Object.entries(statuses)) {
+                    if (content === lastSeen[sessionId]) continue;
+                    lastSeen[sessionId] = content;
 
                     if (content === "UserPromptSubmit" || content === "PreToolUse") {
                         setActivityState(sessionId, "running");
