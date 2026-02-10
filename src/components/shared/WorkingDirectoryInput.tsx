@@ -65,12 +65,16 @@ export function WorkingDirectoryInput({ value, onChange, showHeader = true }: Wo
 				</Button>
 			</div>
 
-			<p
-				className="text-base text-foreground-muted font-mono bg-surface-elevated/50 rounded-md"
-				style={{ padding: "10px 14px" }}
-			>
-				{value || "Using home directory"}
-			</p>
+			<input
+				className="w-full text-base text-foreground font-mono bg-surface-elevated/50 rounded-md border border-border focus:border-primary focus:outline-none"
+				style={{ padding: "10px 14px", height: 40 }}
+				placeholder="Using home directory"
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				autoCorrect="off"
+				autoCapitalize="off"
+				spellCheck={false}
+			/>
 		</div>
 	);
 }

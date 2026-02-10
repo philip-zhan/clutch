@@ -9,6 +9,7 @@ import { Sidebar, CollapsedSidebar } from "./components/Sidebar";
 import { SessionContent } from "./components/SessionContent";
 import { AppLayout } from "./components/AppLayout";
 import { Settings } from "./components/Settings";
+import { Onboarding } from "./components/Onboarding";
 import { UpdateDialog } from "./components/UpdateDialog";
 
 function App() {
@@ -32,6 +33,8 @@ function App() {
         setBranchPrefix,
         notificationSound,
         setNotificationSound,
+        onboardingCompleted,
+        setOnboardingCompleted,
         setActivityState,
         getPersistedTab,
     } = useSessionStore();
@@ -82,9 +85,19 @@ function App() {
         isSettingsOpen,
     });
 
+    const showOnboarding = !onboardingCompleted && isLoaded;
+
     return (
         <main style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-            {isSettingsOpen && (
+            {showOnboarding && (
+                <Onboarding
+                    onComplete={() => setOnboardingCompleted(true)}
+                    defaultWorkingDir={defaultWorkingDir}
+                    onDefaultWorkingDirChange={setDefaultWorkingDir}
+                />
+            )}
+
+            {isSettingsOpen && !showOnboarding && (
                 <Settings
                     onBack={() => setIsSettingsOpen(false)}
                     sidebarPosition={sidebarPosition}
@@ -104,7 +117,7 @@ function App() {
                 />
             )}
 
-            <div style={{ display: isSettingsOpen ? "none" : "contents" }}>
+            <div style={{ display: (isSettingsOpen || showOnboarding) ? "none" : "contents" }}>
                 <TitleBar
                     onSettingsClick={() => setIsSettingsOpen(true)}
                     onTogglePanel={handleTogglePanel}
