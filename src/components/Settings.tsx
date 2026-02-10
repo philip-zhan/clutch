@@ -197,8 +197,12 @@ export function Settings({
                 </Label>
               </div>
 
+              <p className="text-xs text-foreground-subtle" style={{ marginTop: 4 }}>
+                Use <kbd className="font-mono text-foreground-muted">⌘T</kbd> to create a session with a worktree, or <kbd className="font-mono text-foreground-muted">⌘⇧T</kbd> to create one without.
+              </p>
+
               {worktreeEnabled && (
-                <div>
+                <div style={{ marginTop: 16 }}>
                   <p className="text-xs text-foreground-muted" style={{ marginBottom: 8 }}>
                     Branch prefix
                   </p>
