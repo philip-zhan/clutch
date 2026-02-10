@@ -1,5 +1,6 @@
 // Debug flags — flip to true for development
 export const DEBUG_FORCE_ONBOARDING = false;
+export const DEBUG_FORCE_UPDATE_TOAST = false;
 
 // Persistence
 export const STORE_FILE = "sessions.json";

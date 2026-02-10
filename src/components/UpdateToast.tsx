@@ -46,7 +46,7 @@ export function UpdateToast({
 	};
 
 	return (
-		<div style={{ width: 340, padding: 12 }}>
+		<div className="bg-popover text-popover-foreground border border-border rounded-lg shadow-lg" style={{ width: 340, padding: 12 }}>
 			<div className="flex items-center" style={{ gap: 8 }}>
 				{icons[status]}
 				<div style={{ flex: 1, minWidth: 0 }}>
