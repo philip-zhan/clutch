@@ -1,12 +1,12 @@
 # Clutch
 
-A desktop app for running multiple [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sessions side by side. Built with React and Tauri.
-
-![Clutch Screenshot](assets/screenshot.png)
+A terminal app for running Claude code in parallel.
 
 ## Download
 
 [**macOS (Apple Silicon)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_darwin_aarch64.dmg) | [**Linux (.deb)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.deb) | [**Linux (.AppImage)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_amd64.AppImage) | [**Linux (.rpm)**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_linux_x86_64.rpm) | [**Windows**](https://github.com/philip-zhan/clutch/releases/latest/download/Clutch_windows_x64.exe)
+
+![Clutch Screenshot](assets/screenshot.png)
 
 ## Features
 
@@ -18,19 +18,19 @@ A desktop app for running multiple [Claude Code](https://docs.anthropic.com/en/d
 
 ## Keyboard Shortcuts
 
-| Action | macOS | Linux / Windows |
-| --- | --- | --- |
-| New session | `Cmd+T` | `Ctrl+T` |
-| Close session | `Cmd+W` | `Ctrl+W` |
-| Switch to session 1-9 | `Cmd+1-9` | `Ctrl+1-9` |
-| Previous session | `Cmd+Shift+[` | `Ctrl+Shift+[` |
-| Next session | `Cmd+Shift+]` | `Ctrl+Shift+]` |
-| Toggle sidebar | `Cmd+B` | `Ctrl+B` |
-| Toggle terminal panel | `Cmd+J` | `Ctrl+J` |
-| Open settings | `Cmd+,` | `Ctrl+,` |
-| Find in terminal | `Cmd+F` | `Ctrl+F` |
-| Find next | `Enter` / `Cmd+G` | `Enter` / `Ctrl+G` |
-| Find previous | `Shift+Enter` / `Cmd+Shift+G` | `Shift+Enter` / `Ctrl+Shift+G` |
+| Action                | macOS                         | Linux / Windows                |
+| --------------------- | ----------------------------- | ------------------------------ |
+| New session           | `Cmd+T`                       | `Ctrl+T`                       |
+| Close session         | `Cmd+W`                       | `Ctrl+W`                       |
+| Switch to session 1-9 | `Cmd+1-9`                     | `Ctrl+1-9`                     |
+| Previous session      | `Cmd+Shift+[`                 | `Ctrl+Shift+[`                 |
+| Next session          | `Cmd+Shift+]`                 | `Ctrl+Shift+]`                 |
+| Toggle sidebar        | `Cmd+B`                       | `Ctrl+B`                       |
+| Toggle terminal panel | `Cmd+J`                       | `Ctrl+J`                       |
+| Open settings         | `Cmd+,`                       | `Ctrl+,`                       |
+| Find in terminal      | `Cmd+F`                       | `Ctrl+F`                       |
+| Find next             | `Enter` / `Cmd+G`             | `Enter` / `Ctrl+G`             |
+| Find previous         | `Shift+Enter` / `Cmd+Shift+G` | `Shift+Enter` / `Ctrl+Shift+G` |
 
 ## Development
 
