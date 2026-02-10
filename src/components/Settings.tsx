@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
 import { ArrowLeft, RefreshCw, Volume2 } from "lucide-react";
-import { Button } from "./ui/button";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
-import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
-import type { SidebarPosition } from "@/lib/sessions";
+import { useEffect, useState } from "react";
 import type { UseUpdaterResult } from "@/hooks/useUpdater";
-import { SOUND_OPTIONS, playNotificationSound, type NotificationSound } from "@/lib/sounds";
+import type { SidebarPosition } from "@/lib/sessions";
+import {
+  type NotificationSound,
+  playNotificationSound,
+  SOUND_OPTIONS,
+} from "@/lib/sounds";
+import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
+import { Switch } from "./ui/switch";
 
 interface SettingsProps {
   onBack: () => void;
@@ -91,7 +95,10 @@ export function Settings({
       {/* Content */}
       <div className="flex-1 overflow-y-auto" style={{ padding: "32px 0" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 24px" }}>
-          <h1 className="text-xl font-semibold text-foreground" style={{ marginBottom: 32 }}>
+          <h1
+            className="text-xl font-semibold text-foreground"
+            style={{ marginBottom: 32 }}
+          >
             Settings
           </h1>
 
@@ -151,7 +158,11 @@ export function Settings({
                   className="rounded-lg border border-border bg-surface-elevated text-base text-foreground focus:border-primary focus:outline-none"
                   style={{ padding: "6px 12px", height: 40 }}
                   value={notificationSound}
-                  onChange={(e) => onNotificationSoundChange(e.target.value as NotificationSound)}
+                  onChange={(e) =>
+                    onNotificationSoundChange(
+                      e.target.value as NotificationSound,
+                    )
+                  }
                 >
                   {SOUND_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -197,13 +208,22 @@ export function Settings({
                 </Label>
               </div>
 
-              <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
-                Use <kbd className="font-mono text-foreground-muted">⌘T</kbd> to create a session with a worktree, or <kbd className="font-mono text-foreground-muted">⌘⇧T</kbd> to create one without.
+              <p
+                className="text-sm text-foreground-subtle"
+                style={{ marginTop: 4 }}
+              >
+                Use <kbd className="font-mono text-foreground-muted">⌘T</kbd> to
+                create a session with a worktree, or{" "}
+                <kbd className="font-mono text-foreground-muted">⌘⇧T</kbd> to
+                create one without.
               </p>
 
               {worktreeEnabled && (
                 <div style={{ marginTop: 16 }}>
-                  <p className="text-sm text-foreground-muted" style={{ marginBottom: 8 }}>
+                  <p
+                    className="text-sm text-foreground-muted"
+                    style={{ marginBottom: 8 }}
+                  >
                     Branch prefix
                   </p>
                   <input
@@ -221,8 +241,14 @@ export function Settings({
                     autoCapitalize="off"
                     spellCheck={false}
                   />
-                  <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
-                    Branch will be named <code className="font-mono text-foreground-muted">{localBranchPrefix}brave-golden-falcon</code>
+                  <p
+                    className="text-sm text-foreground-subtle"
+                    style={{ marginTop: 4 }}
+                  >
+                    Branch will be named{" "}
+                    <code className="font-mono text-foreground-muted">
+                      {localBranchPrefix}brave-golden-falcon
+                    </code>
                   </p>
                 </div>
               )}
@@ -234,7 +260,10 @@ export function Settings({
                   variant="outline"
                   size="sm"
                   onClick={() => updater.checkForUpdates()}
-                  disabled={updater.status === "checking" || updater.status === "downloading"}
+                  disabled={
+                    updater.status === "checking" ||
+                    updater.status === "downloading"
+                  }
                 >
                   {updater.status === "checking" ? (
                     <>
@@ -251,11 +280,11 @@ export function Settings({
               </div>
             </SettingsSection>
 
-            <SettingsSection
-              title="Developer"
-            >
+            <SettingsSection title="Developer">
               <div className="flex items-center" style={{ gap: 8 }}>
-                <span className="text-sm text-foreground-subtle">Session ID:</span>
+                <span className="text-sm text-foreground-subtle">
+                  Session ID:
+                </span>
                 <code className="text-sm font-mono text-foreground-muted select-all">
                   {activeSessionId ?? "—"}
                 </code>
@@ -282,7 +311,10 @@ function SettingsSection({
       <div style={{ marginBottom: 12 }}>
         <h3 className="text-base font-medium text-foreground">{title}</h3>
         {description && (
-          <p className="text-sm text-foreground-subtle" style={{ marginTop: 4 }}>
+          <p
+            className="text-sm text-foreground-subtle"
+            style={{ marginTop: 4 }}
+          >
             {description}
           </p>
         )}

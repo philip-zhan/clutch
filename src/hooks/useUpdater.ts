@@ -1,168 +1,180 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { DEBUG_FORCE_UPDATE_TOAST, UPDATE_CHECK_DELAY, UPDATE_CHECK_INTERVAL } from "../lib/config";
+import { check, type Update } from "@tauri-apps/plugin-updater";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  DEBUG_FORCE_UPDATE_TOAST,
+  UPDATE_CHECK_DELAY,
+  UPDATE_CHECK_INTERVAL,
+} from "../lib/config";
 
 export type UpdateStatus =
-	| "idle"
-	| "checking"
-	| "available"
-	| "downloading"
-	| "ready"
-	| "error";
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "ready"
+  | "error";
 
 export interface UpdateState {
-	status: UpdateStatus;
-	progress: number;
-	error: string | null;
-	updateInfo: {
-		version: string;
-		currentVersion: string;
-		body?: string;
-		date?: string;
-	} | null;
+  status: UpdateStatus;
+  progress: number;
+  error: string | null;
+  updateInfo: {
+    version: string;
+    currentVersion: string;
+    body?: string;
+    date?: string;
+  } | null;
 }
 
 export interface UseUpdaterResult extends UpdateState {
-	checkForUpdates: (options?: { silent?: boolean }) => Promise<void>;
-	downloadAndInstall: () => Promise<void>;
-	dismissUpdate: () => void;
+  checkForUpdates: (options?: { silent?: boolean }) => Promise<void>;
+  downloadAndInstall: () => Promise<void>;
+  dismissUpdate: () => void;
 }
 
 export function useUpdater(): UseUpdaterResult {
-	const [state, setState] = useState<UpdateState>({
-		status: "idle",
-		progress: 0,
-		error: null,
-		updateInfo: null,
-	});
+  const [state, setState] = useState<UpdateState>({
+    status: "idle",
+    progress: 0,
+    error: null,
+    updateInfo: null,
+  });
 
-	const updateRef = useRef<Update | null>(null);
-	const statusRef = useRef(state.status);
-	statusRef.current = state.status;
+  const updateRef = useRef<Update | null>(null);
+  const statusRef = useRef(state.status);
+  statusRef.current = state.status;
 
-	const checkForUpdates = useCallback(async (options?: { silent?: boolean }) => {
-		if (statusRef.current === "checking" || statusRef.current === "downloading") {
-			return;
-		}
+  const checkForUpdates = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (
+        statusRef.current === "checking" ||
+        statusRef.current === "downloading"
+      ) {
+        return;
+      }
 
-		setState((prev) => ({ ...prev, status: "checking", error: null }));
+      setState((prev) => ({ ...prev, status: "checking", error: null }));
 
-		try {
-			const update = await check();
+      try {
+        const update = await check();
 
-			if (update) {
-				updateRef.current = update;
-				setState({
-					status: "available",
-					progress: 0,
-					error: null,
-					updateInfo: {
-						version: update.version,
-						currentVersion: update.currentVersion,
-						body: update.body ?? undefined,
-						date: update.date ?? undefined,
-					},
-				});
-			} else {
-				setState((prev) => ({ ...prev, status: "idle" }));
-			}
-		} catch (err) {
-			console.error("[Updater] Check failed:", err);
-			if (options?.silent) {
-				setState((prev) => ({ ...prev, status: "idle", error: null }));
-			} else {
-				setState((prev) => ({
-					...prev,
-					status: "error",
-					error:
-						err instanceof Error ? err.message : "Failed to check for updates",
-				}));
-			}
-		}
-	}, []);
+        if (update) {
+          updateRef.current = update;
+          setState({
+            status: "available",
+            progress: 0,
+            error: null,
+            updateInfo: {
+              version: update.version,
+              currentVersion: update.currentVersion,
+              body: update.body ?? undefined,
+              date: update.date ?? undefined,
+            },
+          });
+        } else {
+          setState((prev) => ({ ...prev, status: "idle" }));
+        }
+      } catch (err) {
+        console.error("[Updater] Check failed:", err);
+        if (options?.silent) {
+          setState((prev) => ({ ...prev, status: "idle", error: null }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            status: "error",
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to check for updates",
+          }));
+        }
+      }
+    },
+    [],
+  );
 
-	const downloadAndInstall = useCallback(async () => {
-		const update = updateRef.current;
-		if (!update) return;
+  const downloadAndInstall = useCallback(async () => {
+    const update = updateRef.current;
+    if (!update) return;
 
-		setState((prev) => ({ ...prev, status: "downloading", progress: 0 }));
+    setState((prev) => ({ ...prev, status: "downloading", progress: 0 }));
 
-		try {
-			let contentLength = 0;
-			let downloaded = 0;
+    try {
+      let contentLength = 0;
+      let downloaded = 0;
 
-			await update.downloadAndInstall((event) => {
-				switch (event.event) {
-					case "Started":
-						contentLength = event.data?.contentLength ?? 0;
-						break;
-					case "Progress": {
-						downloaded += event.data?.chunkLength ?? 0;
-						const progress =
-							contentLength > 0
-								? Math.round((downloaded / contentLength) * 100)
-								: 0;
-						setState((prev) => ({ ...prev, progress }));
-						break;
-					}
-					case "Finished":
-						setState((prev) => ({ ...prev, status: "ready", progress: 100 }));
-						break;
-				}
-			});
+      await update.downloadAndInstall((event) => {
+        switch (event.event) {
+          case "Started":
+            contentLength = event.data?.contentLength ?? 0;
+            break;
+          case "Progress": {
+            downloaded += event.data?.chunkLength ?? 0;
+            const progress =
+              contentLength > 0
+                ? Math.round((downloaded / contentLength) * 100)
+                : 0;
+            setState((prev) => ({ ...prev, progress }));
+            break;
+          }
+          case "Finished":
+            setState((prev) => ({ ...prev, status: "ready", progress: 100 }));
+            break;
+        }
+      });
 
-			await relaunch();
-		} catch (err) {
-			console.error("[Updater] Download/install failed:", err);
-			setState((prev) => ({
-				...prev,
-				status: "error",
-				error: err instanceof Error ? err.message : "Failed to install update",
-			}));
-		}
-	}, []);
+      await relaunch();
+    } catch (err) {
+      console.error("[Updater] Download/install failed:", err);
+      setState((prev) => ({
+        ...prev,
+        status: "error",
+        error: err instanceof Error ? err.message : "Failed to install update",
+      }));
+    }
+  }, []);
 
-	const dismissUpdate = useCallback(() => {
-		setState({
-			status: "idle",
-			progress: 0,
-			error: null,
-			updateInfo: null,
-		});
-		updateRef.current = null;
-	}, []);
+  const dismissUpdate = useCallback(() => {
+    setState({
+      status: "idle",
+      progress: 0,
+      error: null,
+      updateInfo: null,
+    });
+    updateRef.current = null;
+  }, []);
 
-	// Auto-check on startup + every 30 minutes
-	useEffect(() => {
-		if (DEBUG_FORCE_UPDATE_TOAST) {
-			setState({
-				status: "available",
-				progress: 0,
-				error: null,
-				updateInfo: { version: "0.0.0-debug", currentVersion: "0.0.0" },
-			});
-			return;
-		}
+  // Auto-check on startup + every 30 minutes
+  useEffect(() => {
+    if (DEBUG_FORCE_UPDATE_TOAST) {
+      setState({
+        status: "available",
+        progress: 0,
+        error: null,
+        updateInfo: { version: "0.0.0-debug", currentVersion: "0.0.0" },
+      });
+      return;
+    }
 
-		const initialTimer = setTimeout(() => {
-			checkForUpdates({ silent: true });
-		}, UPDATE_CHECK_DELAY);
+    const initialTimer = setTimeout(() => {
+      checkForUpdates({ silent: true });
+    }, UPDATE_CHECK_DELAY);
 
-		const interval = setInterval(() => {
-			checkForUpdates({ silent: true });
-		}, UPDATE_CHECK_INTERVAL);
+    const interval = setInterval(() => {
+      checkForUpdates({ silent: true });
+    }, UPDATE_CHECK_INTERVAL);
 
-		return () => {
-			clearTimeout(initialTimer);
-			clearInterval(interval);
-		};
-	}, [checkForUpdates]);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [checkForUpdates]);
 
-	return {
-		...state,
-		checkForUpdates,
-		downloadAndInstall,
-		dismissUpdate,
-	};
+  return {
+    ...state,
+    checkForUpdates,
+    downloadAndInstall,
+    dismissUpdate,
+  };
 }

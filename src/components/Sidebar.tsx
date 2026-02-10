@@ -1,10 +1,17 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, X, RotateCw, GitBranch, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  GitBranch,
+  Plus,
+  RotateCw,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { Session, SidebarPosition } from "@/lib/sessions";
 import { sessionDisplayName } from "@/lib/sessions";
-import type { PersistedTab } from "@/lib/persisted-tabs";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   sessions: Session[];
@@ -19,18 +26,23 @@ interface SidebarProps {
   getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }
 
-function getActivityDot(session: Session): { color: string; animation?: string } {
+function getActivityDot(session: Session): {
+  color: string;
+  animation?: string;
+} {
   if (session.status === "exited") {
     return { color: "transparent" };
   }
   switch (session.activityState) {
     case "running":
-      return { color: "#22c55e", animation: "pulse-green 2s ease-in-out infinite" };
+      return {
+        color: "#22c55e",
+        animation: "pulse-green 2s ease-in-out infinite",
+      };
     case "finished":
       return { color: "#22c55e" };
     case "needs_input":
       return { color: "#ef4444" };
-    case "idling":
     default:
       return { color: "transparent" };
   }
@@ -102,7 +114,9 @@ function VerticalSidebar({
 
   const handleDoubleClick = (session: Session) => {
     setEditingId(session.id);
-    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.id)));
+    setEditValue(
+      session.name || sessionDisplayName(session, getPersistedTab(session.id)),
+    );
   };
 
   const commitRename = () => {
@@ -148,7 +162,7 @@ function VerticalSidebar({
                 "group flex items-center rounded-lg cursor-pointer transition-colors",
                 session.id === activeSessionId
                   ? "bg-surface-elevated text-foreground"
-                  : "text-foreground-muted hover:bg-surface-elevated/50"
+                  : "text-foreground-muted hover:bg-surface-elevated/50",
               )}
               style={{ padding: "8px 10px", marginBottom: 2 }}
               onClick={() => onSelect(session.id)}
@@ -193,7 +207,9 @@ function VerticalSidebar({
                           maxWidth: "100%",
                         }}
                       >
-                        <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
+                        <GitBranch
+                          style={{ width: 11, height: 11, flexShrink: 0 }}
+                        />
                         <span className="truncate">{session.gitBranch}</span>
                       </div>
                     )}
@@ -261,11 +277,25 @@ function HorizontalSidebar({
   onNew,
   onClose,
   getPersistedTab,
-}: Pick<SidebarProps, "sessions" | "activeSessionId" | "onSelect" | "onNew" | "onClose" | "getPersistedTab">) {
+}: Pick<
+  SidebarProps,
+  | "sessions"
+  | "activeSessionId"
+  | "onSelect"
+  | "onNew"
+  | "onClose"
+  | "getPersistedTab"
+>) {
   return (
     <div
       className="flex items-center border-b border-border bg-surface/50 overflow-x-auto"
-      style={{ height: 40, minHeight: 40, paddingLeft: 8, paddingRight: 8, gap: 2 }}
+      style={{
+        height: 40,
+        minHeight: 40,
+        paddingLeft: 8,
+        paddingRight: 8,
+        gap: 2,
+      }}
     >
       {sessions.map((session) => {
         const dot = getActivityDot(session);
@@ -276,7 +306,7 @@ function HorizontalSidebar({
               "group flex items-center rounded-md cursor-pointer transition-colors flex-shrink-0",
               session.id === activeSessionId
                 ? "bg-surface-elevated text-foreground"
-                : "text-foreground-muted hover:bg-surface-elevated/50"
+                : "text-foreground-muted hover:bg-surface-elevated/50",
             )}
             style={{ padding: "4px 10px", gap: 6, height: 30 }}
             onClick={() => onSelect(session.id)}
@@ -302,7 +332,9 @@ function HorizontalSidebar({
                 }}
               >
                 <GitBranch style={{ width: 10, height: 10, flexShrink: 0 }} />
-                <span className="truncate" style={{ maxWidth: 80 }}>{session.gitBranch}</span>
+                <span className="truncate" style={{ maxWidth: 80 }}>
+                  {session.gitBranch}
+                </span>
               </span>
             )}
             <Button
@@ -356,7 +388,9 @@ export function CollapsedSidebar({
     <div
       className={cn(
         "flex flex-col bg-surface/50",
-        position === "left" ? "border-r border-border" : "border-l border-border"
+        position === "left"
+          ? "border-r border-border"
+          : "border-l border-border",
       )}
       style={{ width: 44, height: "100%", flexShrink: 0 }}
     >
@@ -372,11 +406,18 @@ export function CollapsedSidebar({
           onClick={onExpand}
           title="Expand sidebar (⌘B)"
         >
-          {position === "left" ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
+          {position === "left" ? (
+            <ChevronsRight size={16} />
+          ) : (
+            <ChevronsLeft size={16} />
+          )}
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col items-center" style={{ padding: 6, gap: 2 }}>
+      <div
+        className="flex-1 overflow-y-auto flex flex-col items-center"
+        style={{ padding: 6, gap: 2 }}
+      >
         {sessions.map((session) => {
           const dot = getActivityDot(session);
           return (
@@ -388,7 +429,7 @@ export function CollapsedSidebar({
                 "cursor-pointer",
                 session.id === activeSessionId
                   ? "bg-surface-elevated"
-                  : "hover:bg-surface-elevated/50"
+                  : "hover:bg-surface-elevated/50",
               )}
               style={{ width: 32, height: 32, flexShrink: 0 }}
               onClick={() => onSelect(session.id)}
@@ -408,7 +449,10 @@ export function CollapsedSidebar({
         })}
       </div>
 
-      <div className="border-t border-border flex justify-center" style={{ padding: 6 }}>
+      <div
+        className="border-t border-border flex justify-center"
+        style={{ padding: 6 }}
+      >
         <Button
           variant="ghost"
           size="icon"

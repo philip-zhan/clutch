@@ -1,14 +1,18 @@
-import { useEffect, useRef, useCallback, useState } from "react";
-import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { WebLinksAddon } from "@xterm/addon-web-links";
+import type { ISearchOptions } from "@xterm/addon-search";
 import { SearchAddon } from "@xterm/addon-search";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
-import type { ISearchOptions } from "@xterm/addon-search";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { Terminal as XTerm } from "@xterm/xterm";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePty } from "../hooks/usePty";
 import { TerminalSearchBar } from "./TerminalSearchBar";
 import "@xterm/xterm/css/xterm.css";
-import { TERMINAL_FONT_FAMILY, TERMINAL_FONT_SIZE, TERMINAL_LINE_HEIGHT } from "../lib/config";
+import {
+  TERMINAL_FONT_FAMILY,
+  TERMINAL_FONT_SIZE,
+  TERMINAL_LINE_HEIGHT,
+} from "../lib/config";
 
 export interface TerminalProps {
   sessionId: string;
@@ -88,7 +92,12 @@ export function Terminal({
         return;
       }
 
-      if (e.metaKey && e.key === "g" && isSearchOpen && searchAddonRef.current) {
+      if (
+        e.metaKey &&
+        e.key === "g" &&
+        isSearchOpen &&
+        searchAddonRef.current
+      ) {
         e.preventDefault();
         e.stopPropagation();
         if (e.shiftKey) {
@@ -109,6 +118,7 @@ export function Terminal({
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [isActive, isSearchOpen]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-time terminal initialization
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
 
@@ -168,18 +178,22 @@ export function Terminal({
 
     terminal.writeln("\x1b[90mStarting session...\x1b[0m\r\n");
 
-    spawn(cols, rows, workingDir || undefined, command || undefined).then(() => {
-      onStatusChange?.("running");
-      // Re-fit after spawn to catch container layout settling
-      setTimeout(() => {
-        try {
-          fitAddon.fit();
-          resize(terminal.cols, terminal.rows);
-        } catch { /* container may not be visible */ }
-      }, 100);
-    }).catch((err) => {
-      terminal.writeln(`\x1b[31mFailed to spawn PTY: ${err}\x1b[0m`);
-    });
+    spawn(cols, rows, workingDir || undefined, command || undefined)
+      .then(() => {
+        onStatusChange?.("running");
+        // Re-fit after spawn to catch container layout settling
+        setTimeout(() => {
+          try {
+            fitAddon.fit();
+            resize(terminal.cols, terminal.rows);
+          } catch {
+            /* container may not be visible */
+          }
+        }, 100);
+      })
+      .catch((err) => {
+        terminal.writeln(`\x1b[31mFailed to spawn PTY: ${err}\x1b[0m`);
+      });
 
     terminal.onData((data) => {
       write(data);
@@ -193,7 +207,9 @@ export function Terminal({
       resizeTimer = setTimeout(() => {
         try {
           fitAddon.fit();
-        } catch { /* ignore if container hidden */ }
+        } catch {
+          /* ignore if container hidden */
+        }
       }, 50);
     };
     window.addEventListener("resize", handleResize);
@@ -217,7 +233,6 @@ export function Terminal({
       fitAddonRef.current = null;
       searchAddonRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearchClose = useCallback(() => {
@@ -234,7 +249,17 @@ export function Terminal({
   );
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative", display: "flex", flex: 1, width: "100%", height: "100%", backgroundColor }}>
+    <div
+      ref={wrapperRef}
+      style={{
+        position: "relative",
+        display: "flex",
+        flex: 1,
+        width: "100%",
+        height: "100%",
+        backgroundColor,
+      }}
+    >
       <div
         ref={containerRef}
         className={`terminal-wrapper h-full w-full flex-1${showGradient ? "" : " no-gradient"}`}

@@ -1,58 +1,58 @@
 import {
-	uniqueNamesGenerator,
-	adjectives,
-	colors,
-	animals,
+  adjectives,
+  animals,
+  colors,
+  uniqueNamesGenerator,
 } from "unique-names-generator";
 import type { PersistedTab } from "./persisted-tabs";
 
 export type SessionStatus = "running" | "exited";
 
 export type ClaudeActivityState =
-	| "idling"
-	| "running"
-	| "finished"
-	| "needs_input";
+  | "idling"
+  | "running"
+  | "finished"
+  | "needs_input";
 
 export type SidebarPosition = "left" | "right" | "top" | "bottom";
 
 export type WorktreeLocation = "sibling" | "home" | "custom";
 
 export interface Session {
-	id: string; // nanoid — same as PersistedTab.id, stable across restarts
-	name: string;
-	workingDir: string; // effective dir (worktree path or original)
-	command?: string;
-	status: SessionStatus;
-	createdAt: number;
-	activityState?: ClaudeActivityState;
-	gitBranch?: string;
-	worktreePath?: string;
-	gitRepoPath?: string;
-	originalWorkingDir?: string;
+  id: string; // nanoid — same as PersistedTab.id, stable across restarts
+  name: string;
+  workingDir: string; // effective dir (worktree path or original)
+  command?: string;
+  status: SessionStatus;
+  createdAt: number;
+  activityState?: ClaudeActivityState;
+  gitBranch?: string;
+  worktreePath?: string;
+  gitRepoPath?: string;
+  originalWorkingDir?: string;
 }
 
 export function generateBranchName(): string {
-	return uniqueNamesGenerator({
-		dictionaries: [adjectives, colors, animals],
-		separator: "-",
-		length: 3,
-	});
+  return uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+    separator: "-",
+    length: 3,
+  });
 }
 
 export function sessionDisplayName(
-	session: Session,
-	tab?: PersistedTab,
+  session: Session,
+  tab?: PersistedTab,
 ): string {
-	if (session.name) return session.name;
-	const dir =
-		session.gitRepoPath ||
-		tab?.gitRepoPath ||
-		tab?.originalWorkingDir ||
-		session.workingDir;
-	if (dir) {
-		const parts = dir.split("/");
-		return parts[parts.length - 1] || dir;
-	}
-	return "Session";
+  if (session.name) return session.name;
+  const dir =
+    session.gitRepoPath ||
+    tab?.gitRepoPath ||
+    tab?.originalWorkingDir ||
+    session.workingDir;
+  if (dir) {
+    const parts = dir.split("/");
+    return parts[parts.length - 1] || dir;
+  }
+  return "Session";
 }

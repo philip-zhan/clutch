@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { SearchAddon } from "@xterm/addon-search";
-import { ChevronUp, ChevronDown, X } from "lucide-react";
+import type { ISearchOptions, SearchAddon } from "@xterm/addon-search";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { ISearchOptions } from "@xterm/addon-search";
 
 interface TerminalSearchBarProps {
   searchAddon: SearchAddon;
@@ -56,6 +55,7 @@ export function TerminalSearchBar({
   }, [searchAddon]);
 
   // Live search on query/options change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: explicit deps for clarity
   useEffect(() => {
     const options = getSearchOptions(true);
     if (query) {
@@ -66,7 +66,14 @@ export function TerminalSearchBar({
       setResultCount(0);
     }
     onSearchChange?.(query, options);
-  }, [query, caseSensitive, regex, searchAddon, getSearchOptions, onSearchChange]);
+  }, [
+    query,
+    caseSensitive,
+    regex,
+    searchAddon,
+    getSearchOptions,
+    onSearchChange,
+  ]);
 
   // Clear decorations on unmount
   useEffect(() => {
@@ -107,20 +114,29 @@ export function TerminalSearchBar({
     if (!query) return null;
     if (resultCount === 0) {
       return (
-        <span className="text-xs text-foreground-subtle" style={{ whiteSpace: "nowrap" }}>
+        <span
+          className="text-xs text-foreground-subtle"
+          style={{ whiteSpace: "nowrap" }}
+        >
           No results
         </span>
       );
     }
     if (resultIndex === -1) {
       return (
-        <span className="text-xs text-foreground-muted" style={{ whiteSpace: "nowrap" }}>
+        <span
+          className="text-xs text-foreground-muted"
+          style={{ whiteSpace: "nowrap" }}
+        >
           {resultCount}+ found
         </span>
       );
     }
     return (
-      <span className="text-xs text-foreground-muted" style={{ whiteSpace: "nowrap" }}>
+      <span
+        className="text-xs text-foreground-muted"
+        style={{ whiteSpace: "nowrap" }}
+      >
         {resultIndex + 1} of {resultCount}
       </span>
     );
@@ -188,7 +204,9 @@ export function TerminalSearchBar({
         className="border-l border-border"
         style={{ height: 16, marginLeft: 2, marginRight: 4 }}
       />
-      <div style={{ minWidth: 56, textAlign: "center" }}>{renderMatchCount()}</div>
+      <div style={{ minWidth: 56, textAlign: "center" }}>
+        {renderMatchCount()}
+      </div>
       <div
         className="border-l border-border"
         style={{ height: 16, marginLeft: 2, marginRight: 2 }}

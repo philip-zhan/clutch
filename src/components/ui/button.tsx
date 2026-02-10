@@ -1,5 +1,5 @@
-import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -17,8 +17,7 @@ const buttonVariants = cva(
           "bg-surface-elevated text-foreground border border-border-subtle hover:bg-surface-hover hover:border-border",
         ghost:
           "text-foreground-muted hover:bg-surface-elevated hover:text-foreground",
-        link:
-          "text-primary underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "",
@@ -31,7 +30,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 const sizeStyles: Record<string, React.CSSProperties> = {
@@ -56,7 +55,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

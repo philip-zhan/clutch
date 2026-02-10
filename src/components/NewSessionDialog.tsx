@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
+import { Button } from "./ui/button";
 import {
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogBody,
-  DialogFooter,
-  DialogClose,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 
 interface NewSessionDialogProps {
   open: boolean;
@@ -33,13 +33,13 @@ export function NewSessionDialog({
   const [command, setCommand] = useState(defaultCommand);
 
   // Reset form when dialog opens (including after store hydration on restart)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only reset on open change
   useEffect(() => {
     if (open) {
       setName("");
       setWorkingDir(defaultWorkingDir);
       setCommand(defaultCommand);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCreate = () => {
@@ -54,9 +54,7 @@ export function NewSessionDialog({
 
         <DialogHeader>
           <DialogTitle>New Session</DialogTitle>
-          <DialogDescription>
-            Create a new terminal session.
-          </DialogDescription>
+          <DialogDescription>Create a new terminal session.</DialogDescription>
         </DialogHeader>
 
         <DialogBody>
@@ -64,7 +62,10 @@ export function NewSessionDialog({
             <div>
               <Label style={{ display: "block", marginBottom: 8 }}>
                 Session Name
-                <span className="text-foreground-subtle font-normal"> (optional)</span>
+                <span className="text-foreground-subtle font-normal">
+                  {" "}
+                  (optional)
+                </span>
               </Label>
               <input
                 className="w-full rounded-lg border border-border bg-surface-elevated text-sm text-foreground focus:border-primary focus:outline-none"
@@ -92,8 +93,13 @@ export function NewSessionDialog({
                   if (e.key === "Enter") handleCreate();
                 }}
               />
-              <p className="text-xs text-foreground-subtle" style={{ marginTop: 6 }}>
-                e.g. <code className="font-mono">claude</code>, <code className="font-mono">claude --profile architect</code>, or leave empty for shell
+              <p
+                className="text-xs text-foreground-subtle"
+                style={{ marginTop: 6 }}
+              >
+                e.g. <code className="font-mono">claude</code>,{" "}
+                <code className="font-mono">claude --profile architect</code>,
+                or leave empty for shell
               </p>
             </div>
 
@@ -108,9 +114,7 @@ export function NewSessionDialog({
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate}>
-            Create
-          </Button>
+          <Button onClick={handleCreate}>Create</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

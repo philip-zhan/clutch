@@ -1,5 +1,5 @@
-import * as React from "react";
 import { X } from "lucide-react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -23,7 +23,10 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ padding: 16 }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ padding: 16 }}
+    >
       <div
         data-tauri-drag-region
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
@@ -45,10 +48,11 @@ const DialogContent = React.forwardRef<
     className={cn(
       "relative z-50 rounded-xl border border-border bg-surface p-0 shadow-lg",
       "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200",
-      className
+      className,
     )}
     style={{
-      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03) inset",
+      boxShadow:
+        "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03) inset",
     }}
     {...props}
   >
@@ -69,7 +73,12 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(className)}
-    style={{ paddingLeft: 24, paddingRight: 24, paddingTop: 24, paddingBottom: 8 }}
+    style={{
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingTop: 24,
+      paddingBottom: 8,
+    }}
     {...props}
   />
 );
@@ -80,7 +89,10 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-lg font-semibold tracking-tight text-foreground", className)}
+    className={cn(
+      "text-lg font-semibold tracking-tight text-foreground",
+      className,
+    )}
     {...props}
   />
 ));
@@ -92,7 +104,10 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("mt-1.5 text-sm text-foreground-muted leading-relaxed", className)}
+    className={cn(
+      "mt-1.5 text-sm text-foreground-muted leading-relaxed",
+      className,
+    )}
     {...props}
   />
 ));
@@ -104,7 +119,12 @@ const DialogBody = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(className)}
-    style={{ paddingLeft: 24, paddingRight: 24, paddingTop: 16, paddingBottom: 16 }}
+    style={{
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingTop: 16,
+      paddingBottom: 16,
+    }}
     {...props}
   />
 );
@@ -116,14 +136,21 @@ const DialogFooter = ({
   <div
     className={cn(
       "flex items-center justify-end border-t border-border-subtle bg-surface-elevated/50 rounded-b-xl",
-      className
+      className,
     )}
-    style={{ gap: 12, paddingLeft: 24, paddingRight: 24, paddingTop: 16, paddingBottom: 16 }}
+    style={{
+      gap: 12,
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingTop: 16,
+      paddingBottom: 16,
+    }}
     {...props}
   />
 );
 
-interface DialogCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+interface DialogCloseProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 
 const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
   ({ className, ...props }, ref) => (
@@ -133,7 +160,7 @@ const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
       size="icon"
       className={cn(
         "absolute text-foreground-subtle hover:text-foreground",
-        className
+        className,
       )}
       style={{ right: 16, top: 16, width: 32, height: 32 }}
       {...props}
@@ -141,7 +168,7 @@ const DialogClose = React.forwardRef<HTMLButtonElement, DialogCloseProps>(
       <X className="h-4 w-4" />
       <span className="sr-only">Close</span>
     </Button>
-  )
+  ),
 );
 DialogClose.displayName = "DialogClose";
 

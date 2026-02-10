@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { useCallback, useEffect, useRef } from "react";
 
 interface PtyDataPayload {
   session_id: string;
@@ -40,17 +40,23 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
       unlistenData.current?.();
       unlistenExit.current?.();
 
-      unlistenData.current = await listen<PtyDataPayload>("pty-data", (event) => {
-        if (mounted && event.payload.session_id === sessionId) {
-          onDataRef.current(event.payload.data);
-        }
-      });
+      unlistenData.current = await listen<PtyDataPayload>(
+        "pty-data",
+        (event) => {
+          if (mounted && event.payload.session_id === sessionId) {
+            onDataRef.current(event.payload.data);
+          }
+        },
+      );
 
-      unlistenExit.current = await listen<PtyExitPayload>("pty-exit", (event) => {
-        if (mounted && event.payload.session_id === sessionId) {
-          onExitRef.current();
-        }
-      });
+      unlistenExit.current = await listen<PtyExitPayload>(
+        "pty-exit",
+        (event) => {
+          if (mounted && event.payload.session_id === sessionId) {
+            onExitRef.current();
+          }
+        },
+      );
     };
 
     setupListeners();
@@ -63,7 +69,12 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
   }, [sessionId]);
 
   const spawn = useCallback(
-    async (cols: number, rows: number, workingDir?: string, command?: string) => {
+    async (
+      cols: number,
+      rows: number,
+      workingDir?: string,
+      command?: string,
+    ) => {
       if (isSpawned.current) return;
       isSpawned.current = true;
       lastSpawnArgs.current = { cols, rows, workingDir, command };
@@ -76,7 +87,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
         command: command ?? null,
       });
     },
-    [sessionId]
+    [sessionId],
   );
 
   const respawn = useCallback(
@@ -100,7 +111,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
       isSpawned.current = true;
       lastSpawnArgs.current = { cols, rows, workingDir: dir, command: cmd };
     },
-    [sessionId]
+    [sessionId],
   );
 
   const write = useCallback(
@@ -108,7 +119,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
       if (!isSpawned.current) return;
       await invoke("session_write", { sessionId, data });
     },
-    [sessionId]
+    [sessionId],
   );
 
   const resize = useCallback(
@@ -116,7 +127,7 @@ export function usePty({ sessionId, onData, onExit }: UsePtyOptions) {
       if (!isSpawned.current) return;
       await invoke("session_resize", { sessionId, cols, rows });
     },
-    [sessionId]
+    [sessionId],
   );
 
   const destroy = useCallback(async () => {
