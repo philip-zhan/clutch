@@ -86,7 +86,7 @@ export function Onboarding({
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto flex items-center justify-center">
-        <div style={{ maxWidth: 420, padding: "0 24px", width: "100%" }}>
+        <div style={{ maxWidth: 520, padding: "0 32px", width: "100%" }}>
           {step === 0 ? (
             <WelcomeScreen />
           ) : (
@@ -145,17 +145,17 @@ function WelcomeScreen() {
         {CONCEPTS.map((c, i) => (
           <div key={c.title}>
             {i > 0 && (
-              <div className="border-t border-border" style={{ marginLeft: 36 }} />
+              <div className="border-t border-border" style={{ marginLeft: 37 }} />
             )}
-            <div className="flex" style={{ gap: 14, padding: "20px 0" }}>
-              <div style={{ paddingTop: 2 }}>
+            <div className="flex" style={{ gap: 16, padding: "24px 0" }}>
+              <div style={{ paddingTop: 3 }}>
                 <c.icon className="h-5 w-5 text-foreground-muted" />
               </div>
               <div>
-                <p className="text-base font-medium text-foreground" style={{ marginBottom: 4 }}>
+                <p className="text-base font-medium text-foreground" style={{ marginBottom: 6 }}>
                   {c.title}
                 </p>
-                <p className="text-sm text-foreground-muted" style={{ lineHeight: 1.5, marginBottom: 6 }}>
+                <p className="text-sm text-foreground-muted" style={{ lineHeight: 1.6, marginBottom: 8 }}>
                   {c.description}
                 </p>
                 <div className="text-sm text-foreground-muted">
