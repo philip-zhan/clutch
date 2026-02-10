@@ -39,6 +39,14 @@ impl SessionsDir {
         let session_dir = self.path.join(session_id);
         let _ = std::fs::remove_dir_all(&session_dir);
     }
+
+    pub fn remove_all(&self) {
+        if let Ok(entries) = std::fs::read_dir(&self.path) {
+            for entry in entries.flatten() {
+                let _ = std::fs::remove_dir_all(entry.path());
+            }
+        }
+    }
 }
 
 /// Called from frontend on an interval. Reads status files for the given session IDs

@@ -137,7 +137,7 @@ export function useSessionHandlers({
             // Destroy panel PTY if it was mounted
             if (mountedPanels.has(sessionId)) {
                 try {
-                    await invoke("destroy_session", { sessionId: `${sessionId}_panel` });
+                    await invoke("destroy_session", { sessionId: `${sessionId}_panel`, statusId: null });
                 } catch {
                     // Panel PTY may already be gone
                 }
@@ -154,7 +154,10 @@ export function useSessionHandlers({
             }
 
             try {
-                await invoke("destroy_session", { sessionId });
+                await invoke("destroy_session", {
+                    sessionId,
+                    statusId: session?.persistedTabId ?? null,
+                });
             } catch {
                 // PTY may already be gone
             }
