@@ -11,5 +11,15 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(bun run build:*)",
+      "Bash(cargo check:*)",
+      "Bash(grep:*)",
+      "Bash(ps:*)",
+      "Bash(bunx biome check:*)",
+      "Bash(bun run check:*)"
+    ]
   }
 }
