@@ -206,13 +206,6 @@ export function useSessionHandlers({
     [sessions, handleCloseSession, handleCreateSession],
   );
 
-  const handleRenameSession = useCallback(
-    (sessionId: string, name: string) => {
-      updateSession(sessionId, { name });
-    },
-    [updateSession],
-  );
-
   const handleSessionStatusChange = useCallback(
     (sessionId: string, status: "running" | "exited") => {
       updateSession(sessionId, { status });
@@ -254,7 +247,6 @@ export function useSessionHandlers({
     handleNewSessionWithoutWorktree,
     handleCloseSession,
     handleRestartSession,
-    handleRenameSession,
     handleSessionStatusChange,
     handleSelectSession,
     handleTogglePanel,

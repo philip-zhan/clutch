@@ -1,5 +1,4 @@
 import { ChevronsLeft, ChevronsRight, GitBranch, Plus, RotateCw, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { PersistedTab } from "@/lib/persisted-tabs";
 import type { Session, SidebarPosition } from "@/lib/sessions";
@@ -14,7 +13,6 @@ interface SidebarProps {
   onNew: () => void;
   onClose: (sessionId: string) => void;
   onRestart: (sessionId: string) => void;
-  onRename: (sessionId: string, name: string) => void;
   onCollapse?: () => void;
   getPersistedTab: (tabId: string | undefined) => PersistedTab | undefined;
 }
@@ -49,7 +47,6 @@ export function Sidebar({
   onNew,
   onClose,
   onRestart,
-  onRename,
   onCollapse,
   getPersistedTab,
 }: SidebarProps) {
@@ -76,7 +73,6 @@ export function Sidebar({
       onNew={onNew}
       onClose={onClose}
       onRestart={onRestart}
-      onRename={onRename}
       onCollapse={onCollapse}
       getPersistedTab={getPersistedTab}
     />
@@ -90,33 +86,9 @@ function VerticalSidebar({
   onNew,
   onClose,
   onRestart,
-  onRename,
   onCollapse,
   getPersistedTab,
 }: Omit<SidebarProps, "position">) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editingId && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editingId]);
-
-  const handleDoubleClick = (session: Session) => {
-    setEditingId(session.id);
-    setEditValue(session.name || sessionDisplayName(session, getPersistedTab(session.id)));
-  };
-
-  const commitRename = () => {
-    if (editingId) {
-      onRename(editingId, editValue.trim());
-      setEditingId(null);
-    }
-  };
-
   return (
     <div
       className="flex flex-col border-r border-border bg-surface/50"
@@ -157,7 +129,6 @@ function VerticalSidebar({
               )}
               style={{ padding: "8px 10px", marginBottom: 2 }}
               onClick={() => onSelect(session.id)}
-              onDoubleClick={() => handleDoubleClick(session)}
             >
               <div
                 className="rounded-full flex-shrink-0"
@@ -171,38 +142,22 @@ function VerticalSidebar({
               />
 
               <div className="flex-1 min-w-0">
-                {editingId === session.id ? (
-                  <input
-                    ref={inputRef}
-                    className="w-full bg-transparent text-sm text-foreground outline-none border-b border-primary"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onBlur={commitRename}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitRename();
-                      if (e.key === "Escape") setEditingId(null);
+                <div className="text-sm truncate">
+                  {sessionDisplayName(session, getPersistedTab(session.id))}
+                </div>
+                {session.gitBranch && (
+                  <div
+                    className="flex items-center text-xs truncate"
+                    style={{
+                      gap: 4,
+                      marginTop: 2,
+                      color: "#60a5fa",
+                      maxWidth: "100%",
                     }}
-                  />
-                ) : (
-                  <>
-                    <div className="text-sm truncate">
-                      {sessionDisplayName(session, getPersistedTab(session.id))}
-                    </div>
-                    {session.gitBranch && (
-                      <div
-                        className="flex items-center text-xs truncate"
-                        style={{
-                          gap: 4,
-                          marginTop: 2,
-                          color: "#60a5fa",
-                          maxWidth: "100%",
-                        }}
-                      >
-                        <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
-                        <span className="truncate">{session.gitBranch}</span>
-                      </div>
-                    )}
-                  </>
+                  >
+                    <GitBranch style={{ width: 11, height: 11, flexShrink: 0 }} />
+                    <span className="truncate">{session.gitBranch}</span>
+                  </div>
                 )}
               </div>
 
