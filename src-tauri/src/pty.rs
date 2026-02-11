@@ -287,8 +287,14 @@ impl PtyManager {
 /// Get the default shell for the current platform.
 #[cfg(windows)]
 fn get_default_shell() -> String {
-    // On Windows, prefer PowerShell, fall back to cmd.exe
-    std::env::var("COMSPEC").unwrap_or_else(|_| "cmd.exe".to_string())
+    // On Windows, prefer PowerShell 7+ (pwsh), then Windows PowerShell (powershell), fall back to cmd.exe
+    if which::which("pwsh").is_ok() {
+        "pwsh.exe".to_string()
+    } else if which::which("powershell").is_ok() {
+        "powershell.exe".to_string()
+    } else {
+        std::env::var("COMSPEC").unwrap_or_else(|_| "cmd.exe".to_string())
+    }
 }
 
 #[cfg(not(windows))]
