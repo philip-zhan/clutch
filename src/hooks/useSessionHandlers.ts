@@ -14,6 +14,7 @@ interface UseSessionHandlersOptions {
   worktreeEnabled: boolean;
   branchPrefix: string;
   isLoaded: boolean;
+  onboardingCompleted: boolean;
   addSession: (session: Session) => void;
   removeSession: (sessionId: string) => void;
   updateSession: (sessionId: string, updates: Partial<Session>) => void;
@@ -30,6 +31,7 @@ export function useSessionHandlers({
   worktreeEnabled,
   branchPrefix,
   isLoaded,
+  onboardingCompleted,
   addSession,
   removeSession,
   updateSession,
@@ -120,14 +122,15 @@ export function useSessionHandlers({
     handleCreateSession("", defaultWorkingDir, defaultCommand, true);
   }, [handleCreateSession, defaultWorkingDir, defaultCommand]);
 
-  // Auto-create a session on startup
+  // Auto-create a session on startup (but not until onboarding is done,
+  // so the user has a chance to pick a working directory first).
   const hasAutoCreatedRef = useRef(false);
   useEffect(() => {
-    if (isLoaded && sessions.length === 0 && !hasAutoCreatedRef.current) {
+    if (isLoaded && onboardingCompleted && sessions.length === 0 && !hasAutoCreatedRef.current) {
       hasAutoCreatedRef.current = true;
       handleNewSession();
     }
-  }, [isLoaded, sessions.length, handleNewSession]);
+  }, [isLoaded, onboardingCompleted, sessions.length, handleNewSession]);
 
   const handleCloseSession = useCallback(
     async (sessionId: string) => {

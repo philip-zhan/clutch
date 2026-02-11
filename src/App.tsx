@@ -69,6 +69,7 @@ function App() {
     worktreeEnabled,
     branchPrefix,
     isLoaded,
+    onboardingCompleted,
     addSession,
     removeSession,
     updateSession,
