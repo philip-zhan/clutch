@@ -61,8 +61,7 @@ pub fn create_worktree(
                 .to_string()
         }
         "home" => {
-            let home = std::env::var("HOME")
-                .map_err(|_| "Cannot determine home directory".to_string())?;
+            let home = crate::config::home_dir()?;
             Path::new(&home)
                 .join(crate::config::base_dir_name())
                 .join("worktrees")

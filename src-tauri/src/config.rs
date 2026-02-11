@@ -11,3 +11,19 @@ pub fn base_dir_name() -> &'static str {
         ".clutch"
     }
 }
+
+/// Cross-platform home directory resolution.
+/// Uses USERPROFILE on Windows, HOME on Unix.
+pub fn home_dir() -> Result<String, String> {
+    #[cfg(windows)]
+    {
+        std::env::var("USERPROFILE")
+            .or_else(|_| std::env::var("HOME"))
+            .map_err(|_| "Cannot determine home directory (USERPROFILE not set)".to_string())
+    }
+    #[cfg(not(windows))]
+    {
+        std::env::var("HOME")
+            .map_err(|_| "HOME environment variable not set".to_string())
+    }
+}
