@@ -50,15 +50,34 @@ impl PtyManager {
         command: Option<String>,
         env_vars: Vec<(String, String)>,
     ) -> Result<(), String> {
-        let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".to_string());
+        let shell = get_default_shell();
 
+        #[cfg(windows)]
+        {
+            self.spawn_command_windows(&shell, working_dir, command, env_vars)
+        }
+
+        #[cfg(not(windows))]
+        {
+            self.spawn_command_unix(&shell, working_dir, command, env_vars)
+        }
+    }
+
+    #[cfg(not(windows))]
+    fn spawn_command_unix(
+        &self,
+        shell: &str,
+        working_dir: Option<String>,
+        command: Option<String>,
+        env_vars: Vec<(String, String)>,
+    ) -> Result<(), String> {
         match command {
             Some(cmd) if !cmd.is_empty() => {
                 // Run the specified command via login interactive shell.
                 // -i is needed so .zshrc/.bashrc are sourced (not just .zprofile),
                 // otherwise PATH additions from rc files are missing and commands
                 // like "claude" aren't found when the app is launched from Finder.
-                let mut shell_cmd = CommandBuilder::new(&shell);
+                let mut shell_cmd = CommandBuilder::new(shell);
                 shell_cmd.arg("-l");
                 shell_cmd.arg("-i");
                 shell_cmd.arg("-c");
@@ -83,7 +102,7 @@ impl PtyManager {
             }
             _ => {
                 // Plain login shell
-                let mut cmd = CommandBuilder::new(&shell);
+                let mut cmd = CommandBuilder::new(shell);
                 cmd.arg("-l");
 
                 if let Some(dir) = working_dir {
@@ -93,6 +112,76 @@ impl PtyManager {
                 cmd.env("TERM", "xterm-256color");
                 cmd.env("COLORTERM", "truecolor");
                 cmd.env("LANG", "en_US.UTF-8");
+                for (key, value) in &env_vars {
+                    cmd.env(key, value);
+                }
+
+                self.pair
+                    .slave
+                    .spawn_command(cmd)
+                    .map_err(|e| format!("Failed to spawn shell: {}", e))?;
+            }
+        }
+
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    fn spawn_command_windows(
+        &self,
+        shell: &str,
+        working_dir: Option<String>,
+        command: Option<String>,
+        env_vars: Vec<(String, String)>,
+    ) -> Result<(), String> {
+        let is_powershell = shell.to_lowercase().contains("powershell");
+
+        match command {
+            Some(cmd) if !cmd.is_empty() => {
+                let mut shell_cmd = CommandBuilder::new(shell);
+
+                if is_powershell {
+                    // PowerShell: use -NoExit to keep shell open after command
+                    shell_cmd.arg("-NoExit");
+                    shell_cmd.arg("-Command");
+
+                    let cwd_cmd = working_dir
+                        .map(|d| format!("Set-Location '{}'; ", d.replace("'", "''")))
+                        .unwrap_or_default();
+                    shell_cmd.arg(format!("{}{}", cwd_cmd, cmd));
+                } else {
+                    // cmd.exe: use /K to keep command prompt open after command
+                    shell_cmd.arg("/K");
+
+                    let cwd_cmd = working_dir
+                        .map(|d| format!("cd /d \"{}\" && ", d))
+                        .unwrap_or_default();
+                    shell_cmd.arg(format!("{}{}", cwd_cmd, cmd));
+                }
+
+                for (key, value) in &env_vars {
+                    shell_cmd.env(key, value);
+                }
+
+                self.pair
+                    .slave
+                    .spawn_command(shell_cmd)
+                    .map_err(|e| format!("Failed to spawn command: {}", e))?;
+            }
+            _ => {
+                // Plain shell
+                let mut cmd = CommandBuilder::new(shell);
+
+                if is_powershell {
+                    cmd.arg("-NoExit");
+                } else {
+                    // cmd.exe doesn't need special args to stay open
+                }
+
+                if let Some(dir) = working_dir {
+                    cmd.cwd(dir);
+                }
+
                 for (key, value) in &env_vars {
                     cmd.env(key, value);
                 }
@@ -193,6 +282,19 @@ impl PtyManager {
             .map_err(|e| format!("Failed to resize PTY: {}", e))?;
         Ok(())
     }
+}
+
+/// Get the default shell for the current platform.
+#[cfg(windows)]
+fn get_default_shell() -> String {
+    // On Windows, prefer PowerShell, fall back to cmd.exe
+    std::env::var("COMSPEC").unwrap_or_else(|_| "cmd.exe".to_string())
+}
+
+#[cfg(not(windows))]
+fn get_default_shell() -> String {
+    // On Unix-like systems, use the SHELL environment variable
+    std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".to_string())
 }
 
 /// Find the last valid UTF-8 boundary in a byte slice.
