@@ -10,8 +10,7 @@ pub struct SessionsDir {
 
 impl SessionsDir {
     pub fn new() -> Result<Self, String> {
-        let home = std::env::var("HOME")
-            .map_err(|_| "HOME environment variable not set".to_string())?;
+        let home = config::home_dir()?;
         let path = PathBuf::from(home).join(config::base_dir_name()).join("sessions");
         std::fs::create_dir_all(&path)
             .map_err(|e| format!("Failed to create sessions dir: {}", e))?;

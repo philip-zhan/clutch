@@ -3,15 +3,27 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 
 fn claude_settings_path() -> Option<PathBuf> {
-    let home = std::env::var("HOME").ok()?;
+    let home = config::home_dir().ok()?;
     Some(PathBuf::from(home).join(".claude").join("settings.json"))
 }
 
 fn hook_command(event_name: &str) -> String {
     let base = config::base_dir_name();
-    format!(
-        r#"[ -n "$CLUTCH_SESSION_ID" ] && {{ f="$HOME/{base}/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; {{ echo "{event_name}"; cat "$f" 2>/dev/null; }} > "$t" && mv "$t" "$f"; }}"#
-    )
+
+    #[cfg(windows)]
+    {
+        // PowerShell command for Windows
+        format!(
+            r#"if ($env:CLUTCH_SESSION_ID) {{ $f = "$env:USERPROFILE\{base}\sessions\$env:CLUTCH_SESSION_ID\status"; $t = "$f.tmp.$PID"; @("{event_name}"; if (Test-Path $f) {{ Get-Content $f }}) | Set-Content $t; Move-Item $t $f -Force }}"#
+        )
+    }
+
+    #[cfg(not(windows))]
+    {
+        format!(
+            r#"[ -n "$CLUTCH_SESSION_ID" ] && {{ f="$HOME/{base}/sessions/$CLUTCH_SESSION_ID/status"; t="$f.tmp.$$"; {{ echo "{event_name}"; cat "$f" 2>/dev/null; }} > "$t" && mv "$t" "$f"; }}"#
+        )
+    }
 }
 
 pub fn ensure_hooks() {
