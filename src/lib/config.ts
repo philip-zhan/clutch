@@ -3,7 +3,7 @@ export const DEBUG_FORCE_ONBOARDING = false;
 export const DEBUG_FORCE_UPDATE_TOAST = false;
 
 // Persistence
-export const STORE_FILE = "sessions.json";
+export const STORE_FILE = import.meta.env.DEV ? "sessions-dev.json" : "sessions.json";
 
 // Polling intervals (ms)
 export const ACTIVITY_POLL_INTERVAL = 250;
