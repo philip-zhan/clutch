@@ -53,7 +53,6 @@ function App() {
     handleNewSessionWithoutWorktree,
     handleCloseSession,
     handleRestartSession,
-    handleRenameSession,
     handleSessionStatusChange,
     handleSelectSession,
     handleTogglePanel,
@@ -159,7 +158,6 @@ function App() {
               onNew={handleNewSession}
               onClose={handleCloseSession}
               onRestart={handleRestartSession}
-              onRename={handleRenameSession}
               onCollapse={() => setSidebarCollapsed(true)}
               getPersistedTab={getPersistedTab}
             />
