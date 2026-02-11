@@ -89,7 +89,6 @@ function VerticalSidebar({
   onCollapse,
   getPersistedTab,
 }: Omit<SidebarProps, "position">) {
-
   return (
     <div
       className="flex flex-col border-r border-border bg-surface/50"
