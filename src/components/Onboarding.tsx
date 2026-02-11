@@ -1,5 +1,6 @@
-import { Circle, GitBranch, TerminalSquare } from "lucide-react";
+import { Circle, GitBranch, TerminalSquare, Volume2 } from "lucide-react";
 import { useState } from "react";
+import { type NotificationSound, playNotificationSound, SOUND_OPTIONS } from "@/lib/sounds";
 import { WorkingDirectoryInput } from "./shared/WorkingDirectoryInput";
 import { Button } from "./ui/button";
 
@@ -7,6 +8,8 @@ interface OnboardingProps {
   onComplete: () => void;
   defaultWorkingDir: string;
   onDefaultWorkingDirChange: (dir: string) => void;
+  notificationSound: NotificationSound;
+  onNotificationSoundChange: (sound: NotificationSound) => void;
 }
 
 const CONCEPTS = [
@@ -74,6 +77,8 @@ export function Onboarding({
   onComplete,
   defaultWorkingDir,
   onDefaultWorkingDirChange,
+  notificationSound,
+  onNotificationSoundChange,
 }: OnboardingProps) {
   const [step, setStep] = useState(0);
 
@@ -92,7 +97,12 @@ export function Onboarding({
           {step === 0 ? (
             <WelcomeScreen />
           ) : (
-            <WorkingDirScreen value={defaultWorkingDir} onChange={onDefaultWorkingDirChange} />
+            <WorkingDirScreen
+              workingDir={defaultWorkingDir}
+              onWorkingDirChange={onDefaultWorkingDirChange}
+              notificationSound={notificationSound}
+              onNotificationSoundChange={onNotificationSoundChange}
+            />
           )}
         </div>
       </div>
@@ -162,17 +172,60 @@ function WelcomeScreen() {
   );
 }
 
-function WorkingDirScreen({ value, onChange }: { value: string; onChange: (dir: string) => void }) {
+function WorkingDirScreen({
+  workingDir,
+  onWorkingDirChange,
+  notificationSound,
+  onNotificationSoundChange,
+}: {
+  workingDir: string;
+  onWorkingDirChange: (dir: string) => void;
+  notificationSound: NotificationSound;
+  onNotificationSoundChange: (sound: NotificationSound) => void;
+}) {
   return (
     <>
       <h1 className="text-2xl font-semibold text-foreground" style={{ marginBottom: 8 }}>
-        Working Directory
+        Setup
       </h1>
       <p className="text-base text-foreground-muted" style={{ marginBottom: 28 }}>
-        Choose where new sessions start. You can always change this later in Settings.
+        You can always change these later in Settings.
       </p>
 
-      <WorkingDirectoryInput showHeader={false} value={value} onChange={onChange} />
+      <WorkingDirectoryInput showHeader value={workingDir} onChange={onWorkingDirChange} />
+
+      <div style={{ marginTop: 28 }}>
+        <h3 className="text-base font-medium text-foreground" style={{ marginBottom: 4 }}>
+          Notification Sound
+        </h3>
+        <p className="text-sm text-foreground-subtle" style={{ marginBottom: 12 }}>
+          Plays when a session needs your input.
+        </p>
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <select
+            className="rounded-lg border border-border bg-surface-elevated text-base text-foreground focus:border-primary focus:outline-none"
+            style={{ padding: "6px 12px", height: 40 }}
+            value={notificationSound}
+            onChange={(e) => onNotificationSoundChange(e.target.value as NotificationSound)}
+          >
+            {SOUND_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {notificationSound !== "none" && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => playNotificationSound(notificationSound)}
+              title="Preview sound"
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
     </>
   );
 }

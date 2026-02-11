@@ -113,6 +113,8 @@ function App() {
           }}
           defaultWorkingDir={defaultWorkingDir}
           onDefaultWorkingDirChange={setDefaultWorkingDir}
+          notificationSound={notificationSound}
+          onNotificationSoundChange={setNotificationSound}
         />
       )}
 
