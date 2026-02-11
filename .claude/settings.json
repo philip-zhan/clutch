@@ -19,7 +19,10 @@
       "Bash(grep:*)",
       "Bash(ps:*)",
       "Bash(bunx biome check:*)",
-      "Bash(bun run check:*)"
+      "Bash(bun run check:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
