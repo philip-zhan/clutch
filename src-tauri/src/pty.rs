@@ -134,13 +134,30 @@ impl PtyManager {
         command: Option<String>,
         env_vars: Vec<(String, String)>,
     ) -> Result<(), String> {
-        let is_powershell = shell.to_lowercase().contains("powershell");
+        let shell_lower = shell.to_lowercase();
+        let is_bash = shell_lower.contains("bash");
+        let is_powershell =
+            shell_lower.contains("powershell") || shell_lower.contains("pwsh");
 
         match command {
             Some(cmd) if !cmd.is_empty() => {
                 let mut shell_cmd = CommandBuilder::new(shell);
 
-                if is_powershell {
+                if is_bash {
+                    // Git Bash: use Unix-style args
+                    shell_cmd.arg("-l");
+                    shell_cmd.arg("-i");
+                    shell_cmd.arg("-c");
+
+                    let cwd_cmd = working_dir
+                        .map(|d| format!("cd '{}' && ", d.replace("'", "'\\''")))
+                        .unwrap_or_default();
+                    let full_cmd = format!("{}{}; exec bash", cwd_cmd, cmd);
+                    shell_cmd.arg(&full_cmd);
+
+                    shell_cmd.env("TERM", "xterm-256color");
+                    shell_cmd.env("COLORTERM", "truecolor");
+                } else if is_powershell {
                     // PowerShell: use -NoExit to keep shell open after command
                     shell_cmd.arg("-NoExit");
                     shell_cmd.arg("-Command");
@@ -172,10 +189,13 @@ impl PtyManager {
                 // Plain shell
                 let mut cmd = CommandBuilder::new(shell);
 
-                if is_powershell {
+                if is_bash {
+                    cmd.arg("-l");
+                    cmd.arg("-i");
+                    cmd.env("TERM", "xterm-256color");
+                    cmd.env("COLORTERM", "truecolor");
+                } else if is_powershell {
                     cmd.arg("-NoExit");
-                } else {
-                    // cmd.exe doesn't need special args to stay open
                 }
 
                 if let Some(dir) = working_dir {
@@ -287,7 +307,11 @@ impl PtyManager {
 /// Get the default shell for the current platform.
 #[cfg(windows)]
 fn get_default_shell() -> String {
-    // On Windows, prefer PowerShell 7+ (pwsh), then Windows PowerShell (powershell), fall back to cmd.exe
+    // Prefer Git Bash since Claude Code on Windows requires it.
+    if let Some(bash) = find_git_bash() {
+        return bash;
+    }
+    // Fall back to PowerShell / cmd.exe
     if which::which("pwsh").is_ok() {
         "pwsh.exe".to_string()
     } else if which::which("powershell").is_ok() {
@@ -295,6 +319,34 @@ fn get_default_shell() -> String {
     } else {
         std::env::var("COMSPEC").unwrap_or_else(|_| "cmd.exe".to_string())
     }
+}
+
+/// Locate Git Bash's bash.exe on Windows.
+#[cfg(windows)]
+fn find_git_bash() -> Option<String> {
+    // 1. Check if bash.exe is already on PATH
+    if let Ok(path) = which::which("bash") {
+        return Some(path.to_string_lossy().to_string());
+    }
+    // 2. Derive from git.exe location (git is at …\Git\cmd\git.exe, bash at …\Git\bin\bash.exe)
+    if let Ok(git_path) = which::which("git") {
+        if let Some(git_root) = git_path.parent().and_then(|p| p.parent()) {
+            let bash_path = git_root.join("bin").join("bash.exe");
+            if bash_path.exists() {
+                return Some(bash_path.to_string_lossy().to_string());
+            }
+        }
+    }
+    // 3. Check common installation paths
+    for path in &[
+        r"C:\Program Files\Git\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\bin\bash.exe",
+    ] {
+        if std::path::Path::new(path).exists() {
+            return Some(path.to_string());
+        }
+    }
+    None
 }
 
 #[cfg(not(windows))]
