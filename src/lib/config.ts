@@ -11,7 +11,7 @@ export const GIT_BRANCH_POLL_INTERVAL = 5_000;
 
 // Update checker
 export const UPDATE_CHECK_DELAY = 3_000;
-export const UPDATE_CHECK_INTERVAL = 30 * 60 * 1_000;
+export const UPDATE_CHECK_INTERVAL = 60 * 60 * 1_000;
 
 // Terminal
 export const TERMINAL_FONT_FAMILY = "'SF Mono', 'JetBrains Mono', Menlo, Monaco, monospace";
